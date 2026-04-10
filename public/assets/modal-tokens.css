@@ -1,0 +1,62 @@
+/* Shared modal design tokens — student + admin */
+:root {
+  --ub-modal-radius: 12px;
+  --ub-modal-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  --ub-modal-overlay-bg: rgba(0, 0, 0, 0.5);
+  --ub-modal-overlay-pad: 24px;
+  --ub-modal-header-bg: #8b0000;
+  --ub-modal-max-width: min(640px, 96vw);
+  --ub-modal-title-size: 16px;
+  --ub-modal-btn-radius: 8px;
+  --ub-modal-btn-font: 13px;
+}
+
+/* Overlays */
+.srm-overlay {
+  background: var(--ub-modal-overlay-bg);
+  padding: var(--ub-modal-overlay-pad);
+}
+
+.reports-modal-overlay {
+  background: var(--ub-modal-overlay-bg);
+  padding: var(--ub-modal-overlay-pad);
+}
+
+/* Dialog shells */
+.srm-modal,
+.reports-modal,
+.report-modal,
+.cancel-confirm-dialog {
+  border-radius: var(--ub-modal-radius);
+  box-shadow: var(--ub-modal-shadow);
+}
+
+.srm-modal,
+.report-modal {
+  width: 100%;
+  max-width: var(--ub-modal-max-width);
+}
+
+.reports-modal {
+  max-width: var(--ub-modal-max-width);
+}
+
+/* Maroon headers + titles */
+.srm-header,
+.reports-modal-header {
+  background: var(--ub-modal-header-bg);
+}
+
+.srm-header h2,
+.reports-modal-title,
+.report-modal-title {
+  font-size: var(--ub-modal-title-size);
+}
+
+/* Primary action buttons in modal footers */
+.srm-btn-cancel,
+.srm-btn-next,
+.cancel-confirm-btn {
+  border-radius: var(--ub-modal-btn-radius);
+  font-size: var(--ub-modal-btn-font);
+}

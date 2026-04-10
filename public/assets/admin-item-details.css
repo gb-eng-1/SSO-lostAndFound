@@ -1,0 +1,17 @@
+/* Admin AJAX item details modal — extends classes from STUDENT/ItemDetailsModal.css */
+#adminItemModal.item-details-overlay {
+  z-index: 10050;
+}
+
+#adminItemModal .item-details-dialog {
+  font-family: Poppins, system-ui, sans-serif;
+}
+
+#adminItemModal .admin-item-preset-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}

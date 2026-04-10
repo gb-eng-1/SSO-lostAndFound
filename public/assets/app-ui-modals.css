@@ -1,0 +1,137 @@
+/* App-wide alert / confirm / success — replaces native dialogs */
+.aui-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  font-family: Poppins, system-ui, sans-serif;
+}
+.aui-overlay.aui-open {
+  display: flex;
+}
+.aui-dialog {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  max-width: min(420px, 96vw);
+  max-height: min(88vh, 640px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.aui-dialog--success {
+  max-width: min(440px, 96vw);
+  padding: 28px 28px 22px;
+  text-align: center;
+}
+.aui-success-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+}
+.aui-success-close:hover {
+  background: #f9fafb;
+  color: #111;
+}
+.aui-success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 18px;
+  font-size: 36px;
+}
+.aui-success-title {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+.aui-success-msg {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+.aui-success-ticket {
+  margin: 0 0 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  word-break: break-all;
+}
+.aui-success-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.aui-dialog-hdr {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+.aui-dialog-body {
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.55;
+  overflow-y: auto;
+  flex: 1;
+}
+.aui-dialog-foot {
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-top: 1px solid #f3f4f6;
+}
+.aui-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.aui-btn:hover {
+  background: #f9fafb;
+}
+.aui-btn--primary {
+  background: #8b0000;
+  border-color: #8b0000;
+  color: #fff;
+}
+.aui-btn--primary:hover {
+  opacity: 0.92;
+  background: #8b0000;
+}
