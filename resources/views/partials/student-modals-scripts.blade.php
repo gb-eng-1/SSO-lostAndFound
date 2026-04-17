@@ -139,6 +139,7 @@
       + rowScm('Item', f.item)
       + rowScm('Color', f.color)
       + rowScm('Brand', f.brand)
+      + rowScm('Description', f.description)
       + rowScm(f.date_key || 'Date Found', f.date)
       + '</div>';
     var bot = '<div class="scm-panel"><p class="scm-panel-title">General Information</p>'
@@ -146,6 +147,7 @@
       + rowScm('Item', l.item)
       + rowScm('Color', l.color)
       + rowScm('Brand', l.brand)
+      + rowScm('Description', l.description)
       + rowScm(l.date_key || 'Date Lost', l.date)
       + '</div>';
     return top + bot;
@@ -155,13 +157,15 @@
     var btn = document.getElementById('scmClaimBtn');
     if(!btn) return;
     btn.onclick = null;
-    if(!pair || !pair.claimable){
-      btn.style.display = 'none';
-      btn.setAttribute('aria-hidden', 'true');
-      return;
-    }
     btn.style.display = '';
     btn.setAttribute('aria-hidden', 'false');
+    btn.classList.remove('scm-btn-claim--ack');
+    if(!pair || !pair.claimable){
+      btn.disabled = true;
+      btn.textContent = 'Item already claimed';
+      btn.classList.add('scm-btn-claim--ack');
+      return;
+    }
     if(pair.claim_intent_submitted){
       btn.disabled = true;
       btn.textContent = 'Claim acknowledged';
@@ -170,11 +174,11 @@
     }
     btn.disabled = false;
     btn.textContent = 'Claim';
-    btn.classList.remove('scm-btn-claim--ack');
     btn.onclick = function(){ submitMatchedClaimIntent(pair); };
   }
   window.configureScmClaimButtonForPair = configureScmClaimButton;
 
+  window.submitMatchedClaimIntent = submitMatchedClaimIntent;
   function submitMatchedClaimIntent(pair){
     var btn = document.getElementById('scmClaimBtn');
     if(btn){
@@ -347,8 +351,31 @@
 
   var rc = document.getElementById('reportCategory');
   if(rc) rc.addEventListener('change', function(){
+    var isDoc = this.value === 'Document & Identification';
     var row = document.getElementById('reportDocTypeRow');
-    if(row) row.style.display = this.value === 'Document & Identification' ? 'grid' : 'none';
+    if(row) row.style.display = isDoc ? 'grid' : 'none';
+    var elecHint = document.getElementById('srmElecHint');
+    if(elecHint) elecHint.style.display = this.value === 'Electronics & Gadgets' ? '' : 'none';
+    var itemRow  = document.getElementById('srmItemRow');
+    var brandRow = document.getElementById('srmBrandRow');
+    if(itemRow)  itemRow.style.display  = isDoc ? 'none' : '';
+    if(brandRow) brandRow.style.display = isDoc ? 'none' : '';
+    if(!isDoc){
+      var dt = document.getElementById('reportDocType');
+      if(dt) dt.value = '';
+      var lbl = document.getElementById('srmItemLabel');
+      if(lbl) lbl.textContent = 'Item';
+      if(itemRow) itemRow.style.display = '';
+    }
+  });
+
+  var rdt = document.getElementById('reportDocType');
+  if(rdt) rdt.addEventListener('change', function(){
+    var isOther = this.value === 'Other';
+    var itemRow = document.getElementById('srmItemRow');
+    var lbl     = document.getElementById('srmItemLabel');
+    if(itemRow) itemRow.style.display = isOther ? '' : 'none';
+    if(lbl)     lbl.textContent       = isOther ? 'Specify' : 'Item';
   });
 
   var rf = document.getElementById('reportForm');
@@ -361,6 +388,11 @@
       if(!dt){
         if(typeof window.appUiAlert === 'function') window.appUiAlert('Please select the type of identification.');
         else alert('Please select the type of identification.');
+        return;
+      }
+      if(dt === 'Other' && !(payload.item || '').trim()){
+        if(typeof window.appUiAlert === 'function') window.appUiAlert('Please specify the document type.');
+        else alert('Please specify the document type.');
         return;
       }
     }

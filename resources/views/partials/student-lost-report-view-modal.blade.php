@@ -42,7 +42,7 @@
       var d = json.data;
       var p = d.parsed || {};
       var tid = d.display_ticket_id || d.id;
-      var imgSrc = d.image_data && /^data:image\//.test(d.image_data) ? d.image_data : '';
+      var imgSrc = itemImageSrc(d.image_data);
 
       var leftCol = '<div class="item-details-left">';
       if (imgSrc) {
@@ -59,16 +59,27 @@
       function formatDisplayDate(v){
         if (v == null || v === '') return '—';
         var s = String(v);
-        var m = s.match(/^(\d{4}-\d{2}-\d{2})/);
-        if (m) return m[1];
-        var d = new Date(s);
-        if (!isNaN(d.getTime())) {
-          var y = d.getFullYear();
-          var mo = String(d.getMonth()+1).padStart(2,'0');
-          var day = String(d.getDate()).padStart(2,'0');
-          return y+'-'+mo+'-'+day;
+        var mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+        if (mdy) {
+          var mo = parseInt(mdy[1], 10), da = parseInt(mdy[2], 10), yr = mdy[3];
+          yr = yr.length === 4 ? yr.slice(-2) : yr;
+          return mo + '/' + da + '/' + yr;
         }
-        return s;
+        var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        var dt;
+        if (iso) {
+          dt = new Date(+iso[1], +iso[2] - 1, +iso[3]);
+        } else {
+          dt = new Date(s);
+        }
+        if (isNaN(dt.getTime())) return s;
+        return (dt.getMonth()+1) + '/' + dt.getDate() + '/' + String(dt.getFullYear()).slice(-2);
+      }
+      function itemImageSrc(raw){
+        if (!raw || typeof raw !== 'string') return '';
+        if (/^data:image\//i.test(raw)) return raw;
+        if (/^https?:\/\//i.test(raw)) return raw;
+        return '';
       }
 
       var dl = '<dl class="item-details-info-list">'

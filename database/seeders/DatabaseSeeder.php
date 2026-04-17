@@ -16,10 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             HelpPageSeeder::class,
+            StudentSeeder::class,
         ]);
-
-        if (app()->environment('local')) {
-            $this->call(TestDataSeeder::class);
-        }
     }
 }

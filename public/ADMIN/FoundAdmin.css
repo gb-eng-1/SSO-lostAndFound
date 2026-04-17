@@ -702,7 +702,7 @@
   color: #ffffff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   padding: 18px 52px 18px 24px;
 }
@@ -712,6 +712,7 @@
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.02em;
+  text-align: left;
 }
 
 .report-modal-close {
@@ -739,10 +740,70 @@
 }
 
 .report-modal-body {
-  padding: 24px;
+  padding: 20px 22px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+}
+
+/* Encode / lost-report modals: match student .srm-form-row grid (scoped to modal body) */
+.report-modal-body .report-form-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 38%) 1fr;
+  gap: 12px 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.report-modal-body .report-form-row-textarea {
+  align-items: flex-start;
+}
+
+.report-modal-body .report-form-label {
+  flex: unset;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  text-align: right;
+  padding-top: 0;
+  line-height: 1.4;
+}
+
+.report-modal-body .report-form-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.report-modal-body .report-form-row-textarea .report-form-field {
+  align-items: flex-start;
+}
+
+.report-modal-body .report-form-row-checkbox .report-form-field {
+  flex: 1 1 100%;
+}
+
+.report-modal-body .report-input,
+.report-modal-body .report-select,
+.report-modal-body .report-textarea {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.report-modal-body .report-form-row.pp-photo-row {
+  align-items: flex-start;
+}
+
+.report-modal-body .encode-image-field {
+  min-height: 38px;
+}
+
+.report-modal-body .encode-image-placeholder,
+.report-modal-body .encode-image-name {
+  font-size: 13px;
 }
 
 .report-form-row {

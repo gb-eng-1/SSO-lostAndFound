@@ -71,12 +71,6 @@
         </div>
       </div>
       <div class="report-form-row">
-        <label class="report-form-label" for="encStorage">Storage Location:</label>
-        <div class="report-form-field">
-          <input type="text" id="encStorage" name="storage_location" class="report-input" placeholder="e.g. Shelf A-1">
-        </div>
-      </div>
-      <div class="report-form-row">
         <label class="report-form-label" for="encFoundAt">Found At:</label>
         <div class="report-form-field">
           <select id="encFoundAt" name="found_at" class="report-input report-select">
@@ -105,28 +99,34 @@
           <input type="date" id="encDateFound" name="date_found" class="report-input" max="{{ date('Y-m-d') }}">
         </div>
       </div>
-      <div class="report-form-row report-form-row-textarea pp-photo-row">
+      <div class="report-form-row">
+        <label class="report-form-label" for="encStorage">Storage Location:</label>
+        <div class="report-form-field">
+          <input type="text" id="encStorage" name="storage_location" class="report-input" placeholder="e.g. Shelf A-1">
+        </div>
+      </div>
+      <div class="report-form-row pp-photo-row">
         <label class="report-form-label">Photo:</label>
         <div class="report-form-field">
-        <div class="pp-wrap" id="encodeItemPhotoPicker">
-          <div class="pp-idle">
-            <i class="fa-regular fa-image pp-icon"></i>
-            <p class="pp-hint">No photo yet</p>
-            <div class="pp-btn-row">
-              <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
-              <button type="button" class="pp-btn pp-btn--upload" data-pp="upload"><i class="fa-solid fa-upload"></i> Upload</button>
+          <div class="pp-wrap" id="encodeItemPhotoPicker">
+            <div class="pp-idle">
+              <i class="fa-regular fa-image pp-icon"></i>
+              <p class="pp-hint">No photo yet</p>
+              <div class="pp-btn-row">
+                <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
+                <button type="button" class="pp-btn pp-btn--upload" data-pp="upload"><i class="fa-solid fa-upload"></i> Upload</button>
+              </div>
             </div>
-          </div>
-          <div class="pp-preview" style="display:none">
-            <img class="pp-preview-img" src="" alt="Photo preview">
-            <div class="pp-preview-actions">
-              <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
-              <button type="button" class="pp-btn pp-btn--sm" data-pp="upload"><i class="fa-solid fa-upload"></i> Change</button>
-              <button type="button" class="pp-btn pp-btn--del" data-pp="remove"><i class="fa-solid fa-xmark"></i></button>
+            <div class="pp-preview" style="display:none">
+              <img class="pp-preview-img" src="" alt="Photo preview">
+              <div class="pp-preview-actions">
+                <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
+                <button type="button" class="pp-btn pp-btn--sm" data-pp="upload"><i class="fa-solid fa-upload"></i> Change</button>
+                <button type="button" class="pp-btn pp-btn--del" data-pp="remove"><i class="fa-solid fa-xmark"></i></button>
+              </div>
             </div>
+            <input type="file" class="pp-file" accept="image/*" style="display:none">
           </div>
-          <input type="file" class="pp-file" accept="image/*" style="display:none">
-        </div>
         </div>
       </div>
       <div class="report-modal-footer">

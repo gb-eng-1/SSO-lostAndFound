@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ItemImageDisplay;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -117,7 +118,7 @@ class Notification extends Model
             $thumb = null;
             if ($includeThumbnails && $n->related_id && $items->has($n->related_id)) {
                 $img = $items[$n->related_id]->image_data;
-                if (is_string($img) && str_starts_with($img, 'data:') && strlen($img) < 120000) {
+                if (ItemImageDisplay::canUseAsBellThumbnail($img)) {
                     $thumb = $img;
                 }
             }

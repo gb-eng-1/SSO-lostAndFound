@@ -229,17 +229,27 @@ class Item extends Model
     }
 
     /**
-     * Compute the retention deadline (days) for this found item.
-     * Internal items: 2 years; Guest/ID items: 1 year.
+     * Found-item types listed under Recovered IDs (Guest tab): surrendered IDs and
+     * Document & Identification encodes from Encode Item.
+     */
+    public static function isFoundGuestTabCategory(?string $itemType): bool
+    {
+        return $itemType === 'ID & Nameplate' || $itemType === 'Document & Identification';
+    }
+
+    /**
+     * Compute the retention deadline for this found item.
+     * Guest-tab categories: 1 year; other internal categories: 2 years.
      */
     public function retentionEndDate(): ?\Carbon\Carbon
     {
         $base = $this->date_encoded ?? $this->created_at;
-        if (!$base) {
+        if (! $base) {
             return null;
         }
 
-        $years = ($this->item_type === 'ID & Nameplate') ? 1 : 2;
+        $years = self::isFoundGuestTabCategory($this->item_type) ? 1 : 2;
+
         return \Carbon\Carbon::parse($base)->addYears($years);
     }
 

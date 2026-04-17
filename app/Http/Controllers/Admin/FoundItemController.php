@@ -13,6 +13,8 @@ use App\Services\ItemPurgeService;
 use App\Services\MatchScoringService;
 use App\Support\FoundAtLocation;
 use App\Support\ReportColors;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -68,31 +70,45 @@ class FoundItemController extends Controller
 
         $dateRange = $this->resolveDateRange($request->query('date_filter'), $dateFrom, $dateTo);
 
-        // Internal found items (not REF-, not guest ID type); hide Cancelled/Disposed unless status filter applied
+        // Internal: found items not in the guest-tab bucket (Recovered IDs lists ID & Nameplate + Document & Identification)
         $internalQuery = Item::foundItems()
-            ->where('item_type', '!=', 'ID & Nameplate')
-            ->when(!$status, fn($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
-            ->when($category && $category !== 'ID & Nameplate', fn($q) => $q->where('item_type', $category))
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when($dateRange['from'], fn($q) => $q->where('date_encoded', '>=', $dateRange['from']))
-            ->when($dateRange['to'], fn($q) => $q->where('date_encoded', '<=', $dateRange['to']))
+            ->where(function ($q) {
+                $q->whereNull('item_type')
+                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+            })
+            ->when(!$status, fn ($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
+            ->when($category !== null && $category !== '', function ($q) use ($category) {
+                if (Item::isFoundGuestTabCategory($category)) {
+                    $q->whereRaw('1 = 0');
+                } else {
+                    $q->where('item_type', $category);
+                }
+            })
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($dateRange['from'], fn ($q) => $q->where('date_encoded', '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($q) => $q->where('date_encoded', '<=', $dateRange['to']))
             ->orderByDesc('date_encoded');
 
         $internalItems = $internalQuery->get()
-            ->map(fn($item) => $this->attachRetention($item, self::INTERNAL_RETENTION_YEARS));
+            ->map(fn ($item) => $this->attachRetention($item, self::INTERNAL_RETENTION_YEARS));
 
-        // Guest items (ID & Nameplate type) — category filter: only show when "All" or "ID & Nameplate"
         $guestQuery = Item::foundItems()
-            ->where('item_type', 'ID & Nameplate')
-            ->when(!$status, fn($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
-            ->when($category && $category !== 'ID & Nameplate', fn($q) => $q->whereRaw('1=0'))
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when($dateRange['from'], fn($q) => $q->where('date_encoded', '>=', $dateRange['from']))
-            ->when($dateRange['to'], fn($q) => $q->where('date_encoded', '<=', $dateRange['to']))
+            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
+            ->when(!$status, fn ($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
+            ->when($category !== null && $category !== '', function ($q) use ($category) {
+                if (Item::isFoundGuestTabCategory($category)) {
+                    $q->where('item_type', $category);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+            })
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($dateRange['from'], fn ($q) => $q->where('date_encoded', '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($q) => $q->where('date_encoded', '<=', $dateRange['to']))
             ->orderByDesc('date_encoded');
 
         $guestItems = $guestQuery->get()
-            ->map(fn($item) => $this->attachRetention($item, self::GUEST_RETENTION_YEARS));
+            ->map(fn ($item) => $this->attachRetention($item, self::GUEST_RETENTION_YEARS));
 
         // Items expiring within 30 days (for View more modal)
         $expiringItems = collect()
@@ -250,6 +266,13 @@ class FoundItemController extends Controller
 
         $refId = Item::generateRefId();
 
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
+            $imageData = ReportImageStorage::storeAfterNormalize($normalized, 'admin-lost-'.$refId);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+
         Item::create([
             'id'               => $refId,
             'user_id'          => $userId,
@@ -259,7 +282,7 @@ class FoundItemController extends Controller
             'date_encoded'     => now()->toDateString(),
             'date_lost'        => $validated['date_lost'] ?? null,
             'item_description' => $desc,
-            'image_data'       => $validated['imageDataUrl'] ?? null,
+            'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
 
@@ -319,6 +342,13 @@ class FoundItemController extends Controller
         }
         $desc .= 'Owner: ' . $validated['fullname'] . "\nID Type: " . ($validated['id_type'] ?? '');
 
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
+            $imageData = ReportImageStorage::storeAfterNormalize($normalized, 'guest-'.$barcodeId);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+
         $item = Item::create([
             'id'               => $barcodeId,
             'item_type'        => 'ID & Nameplate',
@@ -327,7 +357,7 @@ class FoundItemController extends Controller
             'storage_location' => $validated['storage_location'] ?? null,
             'found_by'         => $validated['encoded_by'] ?? null,
             'date_encoded'     => $validated['date_surrendered'] ?? now()->toDateString(),
-            'image_data'       => $validated['imageDataUrl'] ?? null,
+            'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
 

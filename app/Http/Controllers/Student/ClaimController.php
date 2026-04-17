@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Claim;
 use App\Models\Item;
+use App\Models\ActivityLog;
 use App\Models\Notification;
 use App\Support\FoundAtLocation;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -95,6 +98,21 @@ class ClaimController extends Controller
             'status'            => 'Pending',
         ]);
 
+        $foundItem->update(['status' => 'Unresolved Claimants']);
+
+        Notification::notifyAdmin(
+            'claim_intent',
+            'Claim Intent Submitted',
+            "Student submitted claim intent for item {$validated['found_item_id']} (ref: {$referenceId}).",
+            $referenceId
+        );
+
+        ActivityLog::log(
+            'claim_intent',
+            "Student claim intent: {$referenceId}",
+            $foundItem->id
+        );
+
         return response()->json(['ok' => true, 'reference_id' => $referenceId]);
     }
 
@@ -143,12 +161,26 @@ class ClaimController extends Controller
 
         $referenceId = Claim::generateReferenceId();
 
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl']);
+            $proofPhoto = ReportImageStorage::storeAfterNormalize($normalized, 'student-claim-'.$referenceId);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'ok' => false,
+                'error' => $e->getMessage(),
+                'errors' => ['imageDataUrl' => [$e->getMessage()]],
+            ], 422);
+        }
+        if ($proofPhoto === null) {
+            return response()->json(['ok' => false, 'error' => 'Proof photo is required.'], 422);
+        }
+
         $claim = Claim::create([
             'reference_id'     => $referenceId,
             'student_id'       => $studentId,
             'found_item_id'    => $validated['found_item_id'],
             'lost_report_id'   => $validated['lost_report_id'] ?? null,
-            'proof_photo'      => $validated['imageDataUrl'],
+            'proof_photo'      => $proofPhoto,
             'proof_description' => $validated['proof_description'] ?? null,
             'status'           => 'Pending',
         ]);
@@ -215,7 +247,7 @@ class ClaimController extends Controller
                 'department'        => $meta['Department'] ?? null,
                 'student_number'    => $meta['Student Number'] ?? null,
                 'contact'           => $meta['Contact'] ?? null,
-                'date_lost'         => $lost->date_lost ? $lost->date_lost->format('Y-m-d') : null,
+                'date_lost'         => $lost->date_lost?->format('m/d/y'),
             ];
         }
 
@@ -250,6 +282,8 @@ class ClaimController extends Controller
         $parsedMeta = $item->parseDescription();
         $data['encoded_by_parsed'] = $parsedMeta['Encoded By'] ?? null;
         $data['image_data'] = null;
+        $data['date_lost'] = $item->date_lost?->format('m/d/y');
+        $data['date_encoded'] = $item->date_encoded?->format('m/d/y');
 
         return $data;
     }

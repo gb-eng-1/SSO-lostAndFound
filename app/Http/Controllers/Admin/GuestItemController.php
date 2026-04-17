@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Item;
 use App\Support\ReportColors;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -50,6 +52,13 @@ class GuestItemController extends Controller
         }
         $desc .= 'Owner: ' . $validated['fullname'] . "\nID Type: " . ($validated['id_type'] ?? '');
 
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
+            $imageData = ReportImageStorage::storeAfterNormalize($normalized, 'guest-'.$barcodeId);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+
         Item::create([
             'id'               => $barcodeId,
             'item_type'        => 'ID & Nameplate',
@@ -58,7 +67,7 @@ class GuestItemController extends Controller
             'storage_location' => $validated['storage_location'] ?? null,
             'found_by'         => $validated['encoded_by'] ?? null,
             'date_encoded'     => $validated['date_surrendered'] ?? now()->toDateString(),
-            'image_data'       => $validated['imageDataUrl'] ?? null,
+            'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
 

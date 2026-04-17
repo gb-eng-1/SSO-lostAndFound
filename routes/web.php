@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClaimController as AdminClaimController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\FoundItemController;
 use App\Http\Controllers\Admin\GuestItemController;
 use App\Http\Controllers\Admin\HistoryController;
@@ -84,6 +85,9 @@ Route::prefix('admin')->middleware('admin.auth')->group(function () {
     // Lost reports (admin)
     Route::get('/reports', [ReportsController::class, 'index'])->name('admin.reports');
     Route::post('/reports/{id}/cancel', [ReportsController::class, 'cancel'])->name('admin.reports.cancel');
+
+    // Export
+    Route::get('/export/dashboard', [ExportController::class, 'dashboard'])->name('admin.export.dashboard');
 
     // Notifications
     Route::get('/notifications',              [AdminNotificationController::class, 'index'])->name('admin.notifications');

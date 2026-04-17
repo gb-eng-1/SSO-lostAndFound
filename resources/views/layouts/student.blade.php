@@ -11,12 +11,13 @@
   {{-- Core CSS: base admin layout + student-specific styles --}}
   <link rel="stylesheet" href="{{ asset('ADMIN/AdminDashboard.css') }}?v=10">
   <link rel="stylesheet" href="{{ asset('assets/modal-tokens.css') }}?v=1">
-  <link rel="stylesheet" href="{{ asset('STUDENT/StudentDashboard.css') }}?v=7">
-  <link rel="stylesheet" href="{{ asset('STUDENT/StudentsReport.css') }}?v=6">
+  <link rel="stylesheet" href="{{ asset('STUDENT/StudentDashboard.css') }}?v=10">
+  <link rel="stylesheet" href="{{ asset('STUDENT/StudentsReport.css') }}?v=8">
   <link rel="stylesheet" href="{{ asset('STUDENT/ItemDetailsModal.css') }}?v=5">
   <link rel="stylesheet" href="{{ asset('ADMIN/NotificationsDropdown.css') }}?v=5">
   <link rel="stylesheet" href="{{ asset('assets/photo-picker.css') }}?v=2">
   <link rel="stylesheet" href="{{ asset('assets/app-ui-modals.css') }}?v=1">
+  <link rel="stylesheet" href="{{ asset('assets/ub-unified.css') }}?v=1">
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -112,7 +113,7 @@
 @include('partials.app-ui-modals')
 <script src="{{ asset('assets/app-ui-modals.js') }}?v=1"></script>
 {{-- Shared JS --}}
-<script src="{{ asset('assets/photo-picker.js') }}?v=3"></script>
+<script src="{{ asset('assets/photo-picker.js') }}?v=4"></script>
 <script>
   (function () {
     var dropdown = document.getElementById('studentDropdown');

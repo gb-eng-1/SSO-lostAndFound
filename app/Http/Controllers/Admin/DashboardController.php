@@ -20,14 +20,15 @@ use Illuminate\Validation\Rule;
 class DashboardController extends Controller
 {
     /**
-     * Found items that count as internal (non–guest ID). NULL item_type is internal (SQL != excludes NULL).
+     * Found items listed under Recovered Items (internal) — excludes guest-tab bucket.
      *
      * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Item>
      */
     private function foundItemsInternalNonGuest()
     {
         return Item::foundItems()->where(function ($q) {
-            $q->whereNull('item_type')->orWhere('item_type', '!=', 'ID & Nameplate');
+            $q->whereNull('item_type')
+                ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
         });
     }
 
@@ -41,11 +42,11 @@ class DashboardController extends Controller
             ->count();
     }
 
-    /** External (ID & Nameplate) found items excluding Cancelled/Disposed — matches Found Items guest tab default. */
+    /** Recovered IDs tab bucket (ID & Nameplate + Document & Identification encodes). */
     private function countExternalIds(): int
     {
         return Item::foundItems()
-            ->where('item_type', 'ID & Nameplate')
+            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
             ->whereNotIn('status', ['Cancelled', 'Disposed'])
             ->count();
     }
@@ -212,9 +213,8 @@ class DashboardController extends Controller
             ->limit(7)
             ->get()
             ->map(function (Item $item) {
-                $item->retention_end = $item->date_encoded
-                    ? Carbon::parse($item->date_encoded)->addYears(2)->format('Y-m-d')
-                    : 'N/A';
+                $end = $item->retentionEndDate();
+                $item->retention_end = $end ? $end->format('Y-m-d') : 'N/A';
 
                 return $item;
             });
@@ -224,15 +224,14 @@ class DashboardController extends Controller
     private function queryRecoveredExternalTable()
     {
         return Item::foundItems()
-            ->where('item_type', 'ID & Nameplate')
+            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
             ->whereNotIn('status', ['Cancelled', 'Disposed'])
             ->orderByDesc('date_encoded')
             ->limit(7)
             ->get()
             ->map(function (Item $item) {
-                $item->retention_end = $item->date_encoded
-                    ? Carbon::parse($item->date_encoded)->addYear()->format('Y-m-d')
-                    : 'N/A';
+                $end = $item->retentionEndDate();
+                $item->retention_end = $end ? $end->format('Y-m-d') : 'N/A';
 
                 return $item;
             });
@@ -265,10 +264,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(function (Item $item) {
-                $years = ($item->item_type === 'ID & Nameplate') ? 1 : 2;
-                $item->retention_end = $item->date_encoded
-                    ? Carbon::parse($item->date_encoded)->addYears($years)->format('Y-m-d')
-                    : 'N/A';
+                $end = $item->retentionEndDate();
+                $item->retention_end = $end ? $end->format('Y-m-d') : 'N/A';
 
                 return $item;
             });
@@ -468,13 +465,16 @@ class DashboardController extends Controller
                 'clean_description' => trim(preg_replace('/\n+/', "\n", $desc)) ?: null,
             ];
             $data['display_ticket_id'] = $item->id;
-            $data['date_found'] = $item->date_encoded ? $item->date_encoded->format('Y-m-d') : null;
+            $data['date_found'] = $item->date_encoded?->format('m/d/y');
             $data['linked_summary'] = null;
             $lost = Item::lostReports()->where('matched_barcode_id', $item->id)->orderByDesc('created_at')->first(['id']);
             if ($lost) {
                 $data['linked_summary'] = ['matched_lost_report_id' => $lost->id];
             }
         }
+
+        $data['date_lost'] = $item->date_lost?->format('m/d/y');
+        $data['date_encoded'] = $item->date_encoded?->format('m/d/y');
 
         return response()->json(['ok' => true, 'data' => $data]);
     }

@@ -41,7 +41,7 @@
       $thumb = null;
       if ($isAdmin && $notif->related_id) {
         $img = \App\Models\Item::query()->where('id', $notif->related_id)->value('image_data');
-        if (is_string($img) && str_starts_with($img, 'data:') && strlen($img) < 120000) {
+        if (\App\Support\ItemImageDisplay::canUseAsBellThumbnail($img)) {
           $thumb = $img;
         }
       }

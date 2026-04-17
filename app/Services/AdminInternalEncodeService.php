@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use App\Models\Item;
 use App\Support\FoundAtLocation;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 
 /**
  * Single code path for admin "internal" found-item encode (Item Recovered Report).
@@ -53,6 +55,9 @@ class AdminInternalEncodeService
             $desc .= ($desc !== '' ? "\n" : '') . 'Encoded By: ' . $encoder;
         }
 
+        $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
+        $imageData = ReportImageStorage::storeAfterNormalize($normalized, 'found-'.$barcodeId);
+
         $item = Item::create([
             'id'               => $barcodeId,
             'item_type'        => $validated['category'] ?? null,
@@ -63,7 +68,7 @@ class AdminInternalEncodeService
             'found_at'         => $mergedFoundAt,
             'found_by'         => $validated['found_by'] ?? null,
             'date_encoded'     => $validated['date_found'] ?? now()->toDateString(),
-            'image_data'       => $validated['imageDataUrl'] ?? null,
+            'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
 

@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'google_drive' => [
+        'enabled' => (bool) env('GOOGLE_DRIVE_ENABLED', false),
+        'credentials_path' => env('GOOGLE_DRIVE_CREDENTIALS_PATH', storage_path('app/google-drive-service-account.json')),
+        'folder_id' => env('GOOGLE_DRIVE_FOLDER_ID', ''),
+        /** When true, uploaded files get "anyone with the link can view" so img tags can load them without Google sign-in. */
+        'make_files_public' => (bool) env('GOOGLE_DRIVE_MAKE_FILES_PUBLIC', true),
+    ],
+
 ];

@@ -24,9 +24,28 @@
     function fmtDate(val) {
         if (val == null || val === '') return '—';
         var s = String(val);
-        if (s.indexOf('T') > 0) return s.slice(0, 10);
-        if (s.length >= 10) return s.slice(0, 10);
-        return s;
+        var mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+        if (mdy) {
+            var mo = parseInt(mdy[1], 10), da = parseInt(mdy[2], 10), yr = mdy[3];
+            yr = yr.length === 4 ? yr.slice(-2) : yr;
+            return mo + '/' + da + '/' + yr;
+        }
+        var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        var d;
+        if (iso) {
+            d = new Date(+iso[1], +iso[2] - 1, +iso[3]);
+        } else {
+            d = new Date(s);
+        }
+        if (isNaN(d.getTime())) return s;
+        return (d.getMonth() + 1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(-2);
+    }
+
+    function itemImageSrc(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        if (/^data:image\//i.test(raw)) return raw;
+        if (/^https?:\/\//i.test(raw)) return raw;
+        return '';
     }
 
     function resolvePreset(item) {
@@ -39,7 +58,7 @@
     function renderLostReport(item) {
         var p = item.parsed || {};
         var tid = item.display_ticket_id || item.id;
-        var imgSrc = item.image_data && /^data:image\//.test(item.image_data) ? item.image_data : '';
+        var imgSrc = itemImageSrc(item.image_data);
         var left = '<div class="item-details-left">';
         if (imgSrc) {
             left += '<div class="item-details-image-wrap"><img class="item-details-image" src="' + imgSrc + '" alt=""></div>';
@@ -72,7 +91,7 @@
     function renderFoundItem(item, isExternal) {
         var p = item.parsed || {};
         var bid = item.display_ticket_id || item.id;
-        var imgSrc = item.image_data && /^data:image\//.test(item.image_data) ? item.image_data : '';
+        var imgSrc = itemImageSrc(item.image_data);
         var left = '<div class="item-details-left">';
         if (imgSrc) {
             left += '<div class="item-details-image-wrap"><img class="item-details-image" src="' + imgSrc + '" alt=""></div>';

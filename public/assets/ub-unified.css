@@ -1,0 +1,501 @@
+/*
+ * ub-unified.css
+ * Loaded last in both student and admin layouts to enforce
+ * consistent sizing, colors, and spacing across all UI elements.
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Modals */
+  --ub-modal-radius: 12px;
+  --ub-modal-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  --ub-modal-header-bg: #8b0000;
+  --ub-modal-header-pad: 14px 20px;
+  --ub-modal-title-size: 16px;
+  --ub-modal-title-color: #fff;
+  --ub-modal-close-size: 32px;
+  --ub-modal-body-pad: 20px 22px;
+  --ub-modal-footer-pad: 14px 20px;
+
+  /* Tables */
+  --ub-table-header-bg: #f9fafb;
+  --ub-table-header-color: #374151;
+  --ub-table-border: 1px solid #e5e7eb;
+  --ub-table-cell-pad: 12px 16px;
+  --ub-table-font: 13px;
+  --ub-table-row-even: #fafafa;
+  --ub-table-row-hover: #f5f5f5;
+
+  /* Tabs */
+  --ub-tab-radius: 8px;
+  --ub-tab-pad: 10px 20px;
+  --ub-tab-font: 14px;
+  --ub-tab-active-border: 2px solid #8b0000;
+
+  /* Buttons */
+  --ub-btn-primary-bg: #8b0000;
+  --ub-btn-primary-hover: #6d0000;
+  --ub-btn-radius: 8px;
+  --ub-btn-font: 13px;
+  --ub-btn-weight: 600;
+  --ub-btn-pad: 9px 22px;
+
+  /* Action buttons (view/cancel in tables) */
+  --ub-action-radius: 6px;
+  --ub-action-pad: 6px 14px;
+  --ub-action-font: 13px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL DIALOG SHELLS — unified border-radius, shadow, max-width
+   ═══════════════════════════════════════════════════════════════ */
+.srm-modal,
+.spm-modal,
+.scm-modal,
+.ssm-modal,
+.slrv-modal,
+.chid-modal,
+.report-modal,
+.reports-modal,
+.view-modal,
+.view-modal-matching,
+.claim-item-modal-dialog,
+.claim-item-dialog,
+.found-item-modal-dialog,
+.report-lost-modal-dialog,
+.scan-upload-modal,
+.upload-image-modal,
+.student-report-msg-dialog,
+.report-success-dialog,
+.cancel-confirm-dialog {
+  border-radius: var(--ub-modal-radius);
+  box-shadow: var(--ub-modal-shadow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL HEADERS — unified bg, color, padding, top-corner radius
+   ═══════════════════════════════════════════════════════════════ */
+.srm-header,
+.spm-header,
+.scm-header,
+.slrv-header,
+.chid-header,
+.reports-modal-header,
+.report-modal-header,
+.view-modal-header,
+.claim-item-modal-header,
+.claim-item-header,
+.found-item-modal-header,
+.report-lost-modal-header,
+.student-report-msg-title {
+  background: var(--ub-modal-header-bg);
+  color: var(--ub-modal-title-color);
+  padding: var(--ub-modal-header-pad);
+  border-radius: var(--ub-modal-radius) var(--ub-modal-radius) 0 0;
+}
+
+.srm-header h2,
+.spm-header h2,
+.scm-header h2,
+.slrv-title,
+.chid-title,
+.reports-modal-title,
+.report-modal-title,
+.view-modal-title,
+.claim-item-modal-title,
+.claim-item-title,
+.found-item-modal-title,
+.report-lost-modal-title {
+  font-size: var(--ub-modal-title-size);
+  color: var(--ub-modal-title-color);
+  font-weight: 700;
+}
+
+/* ── Modal close buttons — consistent circle ─────────────────── */
+.srm-close,
+.scm-close,
+.slrv-close,
+.chid-close,
+.reports-modal-close,
+.view-modal-close,
+.claim-item-modal-close,
+.claim-item-close,
+.found-item-modal-close,
+.report-lost-modal-close {
+  width: var(--ub-modal-close-size);
+  height: var(--ub-modal-close-size);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.15s;
+}
+
+.srm-close:hover,
+.scm-close:hover,
+.slrv-close:hover,
+.chid-close:hover,
+.reports-modal-close:hover,
+.view-modal-close:hover,
+.claim-item-modal-close:hover,
+.claim-item-close:hover,
+.found-item-modal-close:hover,
+.report-lost-modal-close:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* ── Modal footer — consistent padding and border ────────────── */
+.srm-footer,
+.scm-footer,
+.chid-footer,
+.claim-item-footer,
+.report-lost-modal-footer {
+  padding: var(--ub-modal-footer-pad);
+  border-top: var(--ub-table-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL FOOTER BUTTONS — primary & secondary
+   ═══════════════════════════════════════════════════════════════ */
+.srm-btn-next,
+.report-lost-btn-next,
+.report-lost-btn-submit,
+.student-report-msg-btn-primary,
+.cancel-confirm-btn {
+  background: var(--ub-btn-primary-bg);
+  color: #fff;
+  border: none;
+  border-radius: var(--ub-btn-radius);
+  padding: var(--ub-btn-pad);
+  font-size: var(--ub-btn-font);
+  font-weight: var(--ub-btn-weight);
+  font-family: Poppins, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.srm-btn-next:hover,
+.report-lost-btn-next:hover,
+.report-lost-btn-submit:hover,
+.student-report-msg-btn-primary:hover,
+.cancel-confirm-btn:hover {
+  background: var(--ub-btn-primary-hover);
+}
+
+.srm-btn-cancel,
+.report-lost-btn-cancel,
+.report-lost-btn-back,
+.student-report-msg-btn-secondary,
+.claim-item-btn-cancel {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: var(--ub-btn-radius);
+  padding: var(--ub-btn-pad);
+  font-size: var(--ub-btn-font);
+  font-weight: var(--ub-btn-weight);
+  font-family: Poppins, sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.srm-btn-cancel:hover,
+.report-lost-btn-cancel:hover,
+.report-lost-btn-back:hover,
+.student-report-msg-btn-secondary:hover,
+.claim-item-btn-cancel:hover {
+  background: #f3f4f6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLES — unified header, cell padding, borders, row striping
+   ═══════════════════════════════════════════════════════════════ */
+.reports-table,
+.reports-data-table,
+.reports-browse-table,
+.claim-table,
+.matched-reports-table,
+.found-table,
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ub-table-font);
+}
+
+.reports-table th,
+.reports-data-table th,
+.reports-browse-table th,
+.claim-table th,
+.matched-reports-table th,
+.found-table th,
+.dash-table th {
+  padding: var(--ub-table-cell-pad);
+  text-align: left;
+  background: var(--ub-table-header-bg);
+  font-weight: 600;
+  color: var(--ub-table-header-color);
+  border-bottom: var(--ub-table-border);
+  white-space: nowrap;
+}
+
+.reports-table td,
+.reports-data-table td,
+.reports-browse-table td,
+.claim-table td,
+.matched-reports-table td,
+.found-table td,
+.dash-table td {
+  padding: var(--ub-table-cell-pad);
+  color: #374151;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reports-table tbody tr:nth-child(even) td,
+.reports-data-table tbody tr:nth-child(even) td,
+.reports-browse-table tbody tr:nth-child(even) td,
+.claim-table tbody tr:nth-child(even) td,
+.matched-reports-table tbody tr:nth-child(even) td,
+.found-table tbody tr:nth-child(even) td,
+.dash-table tbody tr:nth-child(even) td {
+  background: var(--ub-table-row-even);
+}
+
+.reports-table tbody tr:hover td,
+.reports-data-table tbody tr:hover td,
+.reports-browse-table tbody tr:hover td,
+.claim-table tbody tr:hover td,
+.matched-reports-table tbody tr:hover td,
+.found-table tbody tr:hover td,
+.dash-table tbody tr:hover td {
+  background: var(--ub-table-row-hover);
+}
+
+.reports-table tbody tr:last-child td,
+.reports-data-table tbody tr:last-child td,
+.reports-browse-table tbody tr:last-child td,
+.claim-table tbody tr:last-child td,
+.matched-reports-table tbody tr:last-child td,
+.found-table tbody tr:last-child td,
+.dash-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Empty-state text */
+.table-empty {
+  color: #9ca3af;
+  text-align: center;
+  padding: 32px;
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABS — unified sizing and active state
+   ═══════════════════════════════════════════════════════════════ */
+.report-tab,
+.chart-tab,
+.claim-filter-btn,
+.matched-tab-text {
+  padding: var(--ub-tab-pad);
+  border-radius: var(--ub-tab-radius);
+  font-size: var(--ub-tab-font);
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.report-tab:hover,
+.chart-tab:hover,
+.claim-filter-btn:hover,
+.matched-tab-text:hover {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.report-tab.active,
+.chart-tab.active,
+.claim-filter-btn-all.active,
+.matched-tab-text.matched-tab-active {
+  background: #fff;
+  color: #111827;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-bottom: var(--ub-tab-active-border);
+  border-radius: var(--ub-tab-radius) var(--ub-tab-radius) 0 0;
+}
+
+/* Primary-colored tab (e.g. "Report Lost Item") */
+.report-tab-primary {
+  background: var(--ub-btn-primary-bg);
+  color: #fff !important;
+  border-color: var(--ub-btn-primary-bg);
+}
+
+.report-tab-primary:hover {
+  background: var(--ub-btn-primary-hover) !important;
+  border-color: var(--ub-btn-primary-hover) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE ACTION BUTTONS — View / Cancel in rows
+   ═══════════════════════════════════════════════════════════════ */
+.action-cell .btn-view,
+.reports-btn-view,
+.claim-table .btn-view {
+  display: inline-block;
+  padding: var(--ub-action-pad);
+  border-radius: var(--ub-action-radius);
+  font-size: var(--ub-action-font);
+  font-weight: 500;
+  text-decoration: none;
+  background: #3b82f6;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.action-cell .btn-view:hover,
+.reports-btn-view:hover,
+.claim-table .btn-view:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.action-cell .btn-cancel,
+.reports-btn-cancel {
+  display: inline-block;
+  padding: var(--ub-action-pad);
+  border-radius: var(--ub-action-radius);
+  font-size: var(--ub-action-font);
+  font-weight: 500;
+  text-decoration: none;
+  background: #ef4444;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.action-cell .btn-cancel:hover,
+.reports-btn-cancel:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRIMARY BUTTONS — encode, login, dashboard actions
+   ═══════════════════════════════════════════════════════════════ */
+.login-btn,
+.dashboard-encode-btn {
+  border-radius: var(--ub-btn-radius);
+  font-weight: var(--ub-btn-weight);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE WRAPPERS — consistent card styling
+   ═══════════════════════════════════════════════════════════════ */
+.table-wrapper,
+.claim-card,
+.dash-table-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM INPUTS — consistent styling inside modals
+   ═══════════════════════════════════════════════════════════════ */
+.srm-form-row .form-control,
+.srm-form-row select,
+.report-lost-field input[type="text"],
+.report-lost-field input[type="date"],
+.report-lost-field select,
+.report-lost-field textarea,
+.claim-item-form-input,
+.claim-item-form-textarea,
+.chid-input {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-family: Poppins, sans-serif;
+  transition: border-color 0.2s;
+}
+
+.srm-form-row .form-control:focus,
+.srm-form-row select:focus,
+.report-lost-field input:focus,
+.report-lost-field select:focus,
+.report-lost-field textarea:focus,
+.claim-item-form-input:focus,
+.claim-item-form-textarea:focus,
+.chid-input:focus {
+  border-color: #8b0000;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATUS BADGES — consistent pill sizing
+   ═══════════════════════════════════════════════════════════════ */
+.badge-matched,
+.badge-pending,
+.ch-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTER SELECTS — consistent sizing + chevron (admin + student)
+   ═══════════════════════════════════════════════════════════════ */
+.found-filter-select,
+.browse-filter-select,
+.claim-filter-select,
+.matched-filter-select {
+  padding: 8px 32px 8px 12px;
+  min-width: 180px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--ub-btn-radius);
+  font-family: Poppins, sans-serif;
+  font-size: 13px;
+  color: #374151;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM SECTION DIVIDER — separates person / item fields in modals
+   ═══════════════════════════════════════════════════════════════ */
+.form-section-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 4px 0 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD — stack welcome message under title (student only)
+   ═══════════════════════════════════════════════════════════════ */
+.dashboard-header-row:has(.dashboard-welcome) {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}

@@ -25,7 +25,7 @@ class DashboardController extends Controller
 
         $myReports = $this->loadMyReports($studentEmail, $studentId);
 
-        $matchedPairs = $this->buildMatchedPairs($myReports);
+        $matchedPairs = StudentMatchPayload::matchedPairsForStudent($studentEmail, $studentId);
 
         $recentActivity = Notification::forStudent((int) $studentId)
             ->orderByDesc('created_at')
@@ -50,8 +50,9 @@ class DashboardController extends Controller
         $studentId    = session('student_id');
 
         $myReports = $this->loadMyReports($studentEmail, $studentId);
-        $matchedPairs = $this->buildMatchedPairs($myReports);
-        $matchedPairsPayload = StudentMatchPayload::fromPairs($matchedPairs);
+        $matchedPairsPayload = StudentMatchPayload::fromPairs(
+            StudentMatchPayload::matchedPairsForStudent($studentEmail, $studentId)
+        );
 
         $myReportsPreview = $myReports
             ->filter(fn ($r) => ! $r->matched_barcode_id || ! in_array($r->status, ['For Verification', 'Matched', 'Unresolved Claimants']))
@@ -96,17 +97,4 @@ class DashboardController extends Controller
             });
     }
 
-    /**
-     * @param \Illuminate\Support\Collection $myReports
-     * @return \Illuminate\Support\Collection<int, array{lost_report: Item, found_item: Item}>
-     */
-    private function buildMatchedPairs($myReports)
-    {
-        return $myReports->filter(fn($r) => $r->matched_barcode_id && $r->matched_found_item)
-            ->map(fn($r) => [
-                'lost_report' => $r,
-                'found_item'  => $r->matched_found_item,
-            ])
-            ->values();
-    }
 }

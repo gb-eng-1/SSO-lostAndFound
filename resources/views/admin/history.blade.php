@@ -44,9 +44,9 @@
     <h1 class="page-title">History</h1>
   </div>
 
-  {{-- ── Tabs + Filters ──────────────────────────────────────────────────────── --}}
-  <div class="hist-tabs-row">
-    <div class="matched-tabs">
+  {{-- ── Tabs (left) | Filters (right) ───────────────────────────────────────── --}}
+  <div class="browse-toolbar">
+    <div class="matched-tabs report-tabs--browse">
       <span class="matched-tab-text matched-tab-active" id="histAllTab">
         <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
       </span>
@@ -54,33 +54,40 @@
         <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
       </span>
     </div>
-    {{-- All Items filters: Category + Date --}}
-    <div id="histFilterAll" style="display:flex;gap:8px;flex-wrap:wrap;">
-      <select id="historyCategoryFilter" class="matched-filter-select" aria-label="Filter by category">
-        <option value="">Filter By Category</option>
-        @foreach(['Electronics & Gadgets','Document & Identification','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
-          <option value="{{ $cat }}" {{ ($categoryFilter ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-        @endforeach
-      </select>
-      <select id="historyDateFilter" class="matched-filter-select" aria-label="Filter by date">
-        <option value="">Filter By Date</option>
-        <option value="today"   {{ ($dateFilter ?? '') === 'today'   ? 'selected' : '' }}>Today</option>
-        <option value="week"    {{ ($dateFilter ?? '') === 'week'    ? 'selected' : '' }}>This Week</option>
-        <option value="month"   {{ ($dateFilter ?? '') === 'month'   ? 'selected' : '' }}>This Month</option>
-        <option value="3months" {{ ($dateFilter ?? '') === '3months' ? 'selected' : '' }}>Last 3 Months</option>
-        <option value="year"    {{ ($dateFilter ?? '') === 'year'    ? 'selected' : '' }}>This Year</option>
-      </select>
-    </div>
-    {{-- Guest Items filter: Date only --}}
-    <div id="histFilterGuest" style="display:none;">
-      <select id="historyGuestDateFilter" class="matched-filter-select" aria-label="Filter by date">
-        <option value="">Filter By Date</option>
-        <option value="today">Today</option>
-        <option value="week">This Week</option>
-        <option value="month">This Month</option>
-        <option value="3months">Last 3 Months</option>
-        <option value="year">This Year</option>
-      </select>
+    <div class="browse-filter-form">
+      <div class="browse-filter-filters">
+        {{-- All Items filters: Category + Date --}}
+        <div id="histFilterAll" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label class="sr-only" for="historyCategoryFilter">Filter by category</label>
+          <select id="historyCategoryFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
+            <option value="">Filter By Category</option>
+            @foreach(['Electronics & Gadgets','Document & Identification','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
+              <option value="{{ $cat }}" {{ ($categoryFilter ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+            @endforeach
+          </select>
+          <label class="sr-only" for="historyDateFilter">Filter by date</label>
+          <select id="historyDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
+            <option value="">Filter By Date</option>
+            <option value="today"   {{ ($dateFilter ?? '') === 'today'   ? 'selected' : '' }}>Today</option>
+            <option value="week"    {{ ($dateFilter ?? '') === 'week'    ? 'selected' : '' }}>This Week</option>
+            <option value="month"   {{ ($dateFilter ?? '') === 'month'   ? 'selected' : '' }}>This Month</option>
+            <option value="3months" {{ ($dateFilter ?? '') === '3months' ? 'selected' : '' }}>Last 3 Months</option>
+            <option value="year"    {{ ($dateFilter ?? '') === 'year'    ? 'selected' : '' }}>This Year</option>
+          </select>
+        </div>
+        {{-- Guest Items filter: Date only --}}
+        <div id="histFilterGuest" style="display:none;">
+          <label class="sr-only" for="historyGuestDateFilter">Filter by date</label>
+          <select id="historyGuestDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
+            <option value="">Filter By Date</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 

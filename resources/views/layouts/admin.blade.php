@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{{ asset('ADMIN/NotificationsDropdown.css') }}?v=5">
   <link rel="stylesheet" href="{{ asset('assets/photo-picker.css') }}?v=2">
   <link rel="stylesheet" href="{{ asset('assets/app-ui-modals.css') }}?v=1">
+  <link rel="stylesheet" href="{{ asset('assets/ub-unified.css') }}?v=1">
 
   {{-- CSRF meta tag for JS fetch calls --}}
   <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -118,7 +119,7 @@
 <script src="{{ asset('assets/app-ui-modals.js') }}?v=1"></script>
 @include('partials.admin-encode-review-modal')
 {{-- Shared JS --}}
-<script src="{{ asset('assets/photo-picker.js') }}?v=3"></script>
+<script src="{{ asset('assets/photo-picker.js') }}?v=4"></script>
 <script>
   // Admin dropdown: .open class + stopPropagation (matches AdminDashboard.css)
   (function () {

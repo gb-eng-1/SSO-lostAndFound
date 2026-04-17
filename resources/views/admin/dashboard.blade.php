@@ -22,56 +22,64 @@
 
 <div class="dashboard-header-row">
   <h1 class="page-title">Dashboard</h1>
-  <a href="#" class="dashboard-encode-btn" onclick="openEncodeModal(event)">
-    <i class="fa-solid fa-plus" style="margin-right:6px;"></i>Encode Item
-  </a>
 </div>
 
-{{-- ── Summary Cards ─────────────────────────────────────────────────────── --}}
-<div class="summary-cards-four">
-  <a href="{{ route('admin.found') }}" class="summary-card-link">
-    <div class="summary-card">
-      <div class="summary-card-text">
-        <h3 class="summary-title">Recovered Items</h3>
-        <p class="summary-sub-title">Internal (non-ID)</p>
-        <p class="summary-value" data-summary-stat="internal_recovered">{{ number_format($internalRecovered) }}</p>
+{{-- ── Summary Cards + Action Buttons ────────────────────────────────────── --}}
+<div class="dashboard-stats-row">
+  <div class="summary-cards-four">
+    <a href="{{ route('admin.found') }}" class="summary-card-link">
+      <div class="summary-card">
+        <div class="summary-card-text">
+          <h3 class="summary-title">Recovered Items</h3>
+          <p class="summary-sub-title">Internal (non-ID)</p>
+          <p class="summary-value" data-summary-stat="internal_recovered">{{ number_format($internalRecovered) }}</p>
+        </div>
+        <div class="summary-icon-wrap unclaimed"><i class="fa-solid fa-box-archive"></i></div>
+        <div class="summary-bg-icon unclaimed"><i class="fa-solid fa-box-archive"></i></div>
       </div>
-      <div class="summary-icon-wrap unclaimed"><i class="fa-solid fa-box-archive"></i></div>
-      <div class="summary-bg-icon unclaimed"><i class="fa-solid fa-box-archive"></i></div>
-    </div>
-  </a>
-  <a href="{{ route('admin.found') }}" class="summary-card-link">
-    <div class="summary-card">
-      <div class="summary-card-text">
-        <h3 class="summary-title">Recovered IDs</h3>
-        <p class="summary-sub-title">External (active)</p>
-        <p class="summary-value" data-summary-stat="external_ids">{{ number_format($externalIds) }}</p>
+    </a>
+    <a href="{{ route('admin.found') }}" class="summary-card-link">
+      <div class="summary-card">
+        <div class="summary-card-text">
+          <h3 class="summary-title">Recovered IDs</h3>
+          <p class="summary-sub-title">External (active)</p>
+          <p class="summary-value" data-summary-stat="external_ids">{{ number_format($externalIds) }}</p>
+        </div>
+        <div class="summary-icon-wrap external"><i class="fa-regular fa-id-card"></i></div>
+        <div class="summary-bg-icon external"><i class="fa-regular fa-id-card"></i></div>
       </div>
-      <div class="summary-icon-wrap external"><i class="fa-regular fa-id-card"></i></div>
-      <div class="summary-bg-icon external"><i class="fa-regular fa-id-card"></i></div>
-    </div>
-  </a>
-  <a href="{{ route('admin.reports') }}" class="summary-card-link">
-    <div class="summary-card">
-      <div class="summary-card-text">
-        <h3 class="summary-title">Unresolved Claimants</h3>
-        <p class="summary-sub-title">Student lost reports (unmatched)</p>
-        <p class="summary-value" data-summary-stat="unresolved">{{ number_format($unresolved) }}</p>
+    </a>
+    <a href="{{ route('admin.reports') }}" class="summary-card-link">
+      <div class="summary-card">
+        <div class="summary-card-text">
+          <h3 class="summary-title">Unresolved Claimants</h3>
+          <p class="summary-sub-title">Unmatched reports</p>
+          <p class="summary-value" data-summary-stat="unresolved">{{ number_format($unresolved) }}</p>
+        </div>
+        <div class="summary-icon-wrap unresolved"><i class="fa-solid fa-users"></i></div>
+        <div class="summary-bg-icon unresolved"><i class="fa-solid fa-users"></i></div>
       </div>
-      <div class="summary-icon-wrap unresolved"><i class="fa-solid fa-users"></i></div>
-      <div class="summary-bg-icon unresolved"><i class="fa-solid fa-users"></i></div>
-    </div>
-  </a>
-  <a href="{{ route('admin.matched') }}" class="summary-card-link">
-    <div class="summary-card">
-      <div class="summary-card-text">
-        <h3 class="summary-title">For Verification</h3>
-        <p class="summary-value" data-summary-stat="for_verification">{{ number_format($forVerification) }}</p>
+    </a>
+    <a href="{{ route('admin.matched') }}" class="summary-card-link">
+      <div class="summary-card">
+        <div class="summary-card-text">
+          <h3 class="summary-title">For Verification</h3>
+          <p class="summary-sub-title">&nbsp;</p>
+          <p class="summary-value" data-summary-stat="for_verification">{{ number_format($forVerification) }}</p>
+        </div>
+        <div class="summary-icon-wrap verification"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="summary-bg-icon verification"><i class="fa-solid fa-circle-check"></i></div>
       </div>
-      <div class="summary-icon-wrap verification"><i class="fa-solid fa-circle-check"></i></div>
-      <div class="summary-bg-icon verification"><i class="fa-solid fa-circle-check"></i></div>
-    </div>
-  </a>
+    </a>
+  </div>
+  <div class="dashboard-action-btns">
+    <a href="#" class="dashboard-btn-encode" onclick="openEncodeModal(event)">
+      <i class="fa-solid fa-plus dashboard-action-icon dashboard-action-icon--encode"></i> Encode Item
+    </a>
+    <a href="{{ route('admin.export.dashboard') }}" class="dashboard-btn-export">
+      <i class="fa-solid fa-file-excel dashboard-action-icon dashboard-action-icon--export"></i> Export Report
+    </a>
+  </div>
 </div>
 
 {{-- ── 3-Column Grid ────────────────────────────────────────────────────────── --}}

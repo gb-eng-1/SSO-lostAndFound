@@ -22,22 +22,25 @@ class HistoryController extends Controller
 
         $dateRange = $this->resolveDateRange($dateFilter);
 
-        // Internal: found items (non-ID & Nameplate) that have been claimed or disposed
+        // Internal: found items outside guest-tab bucket, claimed or disposed
         $allClaimed = Item::foundItems()
-            ->where('item_type', '!=', 'ID & Nameplate')
+            ->where(function ($q) {
+                $q->whereNull('item_type')
+                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+            })
             ->whereIn('status', ['Claimed', 'Disposed'])
-            ->when($categoryFilter, fn($q) => $q->where('item_type', $categoryFilter))
-            ->when($dateRange['from'], fn($q) => $q->where('updated_at', '>=', $dateRange['from']))
-            ->when($dateRange['to'],   fn($q) => $q->where('updated_at', '<=', $dateRange['to']))
+            ->when($categoryFilter, fn ($q) => $q->where('item_type', $categoryFilter))
+            ->when($dateRange['from'], fn ($q) => $q->where('updated_at', '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($q) => $q->where('updated_at', '<=', $dateRange['to']))
             ->orderByDesc('updated_at')
             ->get();
 
-        // External: guest ID items (ID & Nameplate) that have been claimed or disposed
+        // External: Recovered IDs bucket (guest IDs + Document & Identification encodes)
         $guestClaimed = Item::foundItems()
-            ->where('item_type', 'ID & Nameplate')
+            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
             ->whereIn('status', ['Claimed', 'Disposed'])
-            ->when($dateRange['from'], fn($q) => $q->where('updated_at', '>=', $dateRange['from']))
-            ->when($dateRange['to'],   fn($q) => $q->where('updated_at', '<=', $dateRange['to']))
+            ->when($dateRange['from'], fn ($q) => $q->where('updated_at', '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($q) => $q->where('updated_at', '<=', $dateRange['to']))
             ->orderByDesc('updated_at')
             ->get();
 

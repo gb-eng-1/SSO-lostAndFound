@@ -12,6 +12,8 @@ use App\Services\AutoMatchService;
 use App\Services\ItemPurgeService;
 use App\Services\MatchScoringService;
 use App\Support\ReportColors;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 use App\Support\StudentMatchPayload;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -43,6 +45,7 @@ class LostReportController extends Controller
         'Company/Employee ID',
         'National ID',
         'Senior Citizen ID',
+        'Other',
     ];
 
     /** GET /student/reports */
@@ -63,22 +66,16 @@ class LostReportController extends Controller
             ->when($categoryFilter, fn ($q) => $q->where('item_type', $categoryFilter));
 
         if ($filter === 'matched') {
-            $reports = $baseQuery->whereNotNull('matched_barcode_id')
-                ->whereIn('status', ['For Verification', 'Matched', 'Unresolved Claimants'])
-                ->orderByDesc('date_lost')
-                ->get()
-                ->map(function (Item $r) {
-                    $r->matched_found_item = $r->matched_barcode_id
-                        ? Item::find($r->matched_barcode_id)
-                        : null;
-                    return $r;
-                });
+            $matchedPairsColl = StudentMatchPayload::matchedPairsForStudent(
+                $studentEmail, $studentId, $categoryFilter
+            );
+            $reports = $matchedPairsColl->map(function (array $pair) {
+                $r = $pair['lost_report'];
+                $r->matched_found_item = $pair['found_item'];
+                return $r;
+            });
         } else {
             $reports = $baseQuery
-                ->where(function ($q) {
-                    $q->whereNull('matched_barcode_id')
-                      ->orWhereNotIn('status', ['For Verification', 'Matched', 'Unresolved Claimants']);
-                })
                 ->orderByDesc('date_lost')
                 ->get()
                 ->map(function (Item $r) {
@@ -98,7 +95,11 @@ class LostReportController extends Controller
         }
 
         $matchedPairsColl = $reports->filter(function (Item $r) {
-            return $r->matched_barcode_id && $r->matched_found_item;
+            if (! $r->matched_barcode_id || ! $r->matched_found_item) {
+                return false;
+            }
+
+            return StudentMatchPayload::shouldIncludeInMatchedLists($r, $r->matched_found_item);
         })->map(function (Item $r) {
             return [
                 'lost_report'  => $r,
@@ -109,13 +110,16 @@ class LostReportController extends Controller
         $matchedPairsPayload = StudentMatchPayload::fromPairs($matchedPairsColl);
 
         $categories = self::CATEGORIES;
+        $studentName = session('student_name');
 
         return view('student.reports', compact(
             'reports',
             'filter',
             'matchedPairsPayload',
             'categoryFilter',
-            'categories'
+            'categories',
+            'studentName',
+            'studentNumber'
         ));
     }
 
@@ -143,6 +147,9 @@ class LostReportController extends Controller
         ];
         if ($request->input('category') === 'Document & Identification') {
             $rules['document_type'] = ['required', Rule::in(self::DOCUMENT_TYPES)];
+            if ($request->input('document_type') === 'Other') {
+                $rules['item'] = 'required|string|max:200';
+            }
         }
 
         $validated = $request->validate($rules);
@@ -188,6 +195,17 @@ class LostReportController extends Controller
 
         $refId = Item::generateRefId();
 
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
+            $imageData = ReportImageStorage::storeAfterNormalize($normalized, 'lost-'.$refId);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => $e->getMessage(),
+                'errors' => ['imageDataUrl' => [$e->getMessage()]],
+            ], 422);
+        }
+
         Item::create([
             'id'               => $refId,
             'user_id'          => $userId,
@@ -197,7 +215,7 @@ class LostReportController extends Controller
             'date_encoded'     => now()->toDateString(),
             'date_lost'        => $validated['date_lost'] ?? null,
             'item_description' => $desc,
-            'image_data'       => $validated['imageDataUrl'] ?? null,
+            'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
 
@@ -220,8 +238,16 @@ class LostReportController extends Controller
     }
 
     /** POST /student/reports/{id}/cancel */
-    public function cancel(string $id): JsonResponse
+    public function cancel(Request $request, string $id): JsonResponse
     {
+        $reason = trim((string) $request->input('reason', ''));
+        if ($reason === '') {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Please provide a reason for cancellation.',
+            ], 422);
+        }
+
         $studentEmail  = session('student_email');
         $studentId     = session('student_id');
         $studentNumber = Student::find($studentId)?->student_id;
@@ -233,7 +259,6 @@ class LostReportController extends Controller
             ->whereNotIn('status', ['Claimed', 'Resolved', 'Cancelled'])
             ->firstOrFail();
 
-        // Cooldown is based on when the report was submitted (created_at), not date lost.
         if ($report->created_at && Carbon::now()->lt(Carbon::parse($report->created_at)->addHours(24))) {
             return response()->json([
                 'ok' => false,
@@ -241,7 +266,18 @@ class LostReportController extends Controller
             ], 422);
         }
 
+        $displayTicket = $report->display_ticket_id;
+
         (new ItemPurgeService)->purge($id);
+
+        Notification::notifyAdmin(
+            'report_cancelled',
+            'Report Cancelled by Student',
+            "Student cancelled report {$displayTicket}. Reason: {$reason}",
+            $id
+        );
+
+        ActivityLog::record('report_cancelled', $id, "Student cancelled: {$reason}", $studentId, 'student');
 
         return response()->json(['ok' => true]);
     }

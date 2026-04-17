@@ -22,8 +22,12 @@
   $idSid = $isAdmin ? 'repId' : 'srmSid';
   $idItem = $isAdmin ? 'repItem' : 'srmItem';
   $idDesc = $isAdmin ? 'repDesc' : 'srmDesc';
+  $idElecHint = $isAdmin ? 'repElecHint' : 'srmElecHint';
   $idColor = $isAdmin ? 'repColor' : 'srmColor';
   $idBrand = $isAdmin ? 'repBrand' : 'srmBrand';
+  $idItemRow = $isAdmin ? 'repItemRow' : 'srmItemRow';
+  $idBrandRow = $isAdmin ? 'repBrandRow' : 'srmBrandRow';
+  $idItemLabel = $isAdmin ? 'repItemLabel' : 'srmItemLabel';
   $idDateLost = $isAdmin ? 'repDateLost' : 'srmDateLost';
   $idPhotoPicker = $isAdmin ? 'encodeReportPhotoPicker' : 'reportPhotoPicker';
   $formControlClass = $isAdmin ? 'report-input' : 'form-control';
@@ -32,6 +36,17 @@
   $fieldWrapClass = $isAdmin ? 'report-form-field' : null;
   $showEmail = $isAdmin && ($showStudentEmail ?? true);
   $documentTypeOptions = \App\Http\Controllers\Student\LostReportController::DOCUMENT_TYPES;
+
+  $studentIdAutofill = '';
+  if (! $isAdmin) {
+    $sessEmail = session('student_email');
+    if (is_string($sessEmail) && str_contains($sessEmail, '@')) {
+      $studentIdAutofill = trim(explode('@', $sessEmail, 2)[0]);
+    }
+    if ($studentIdAutofill === '' && isset($studentNumber) && $studentNumber !== null && $studentNumber !== '') {
+      $studentIdAutofill = (string) $studentNumber;
+    }
+  }
 @endphp
 
 @if($showEmail)
@@ -43,49 +58,32 @@
   </div>
 @endif
 
+{{-- Admin: Category is first; Student: Category comes after ID --}}
+@if($isAdmin)
 <div class="{{ $formRowClass }}">
-  @if($isAdmin)
-    <label class="{{ $labelClass }}" for="{{ $idCat }}">Category</label>
-    <div class="{{ $fieldWrapClass }}">
-      <select id="{{ $idCat }}" name="category" class="report-input report-select">
-        <option value="">— Select —</option>
-        @foreach($categoriesList as $cat)
-          <option value="{{ $cat }}">{{ $cat }}</option>
-        @endforeach
-      </select>
-    </div>
-  @else
-    <label for="{{ $idCat }}">Category</label>
-    <select id="{{ $idCat }}" name="category" class="{{ $formControlClass }}">
-      <option value="">Select Category</option>
+  <label class="{{ $labelClass }}" for="{{ $idCat }}">Category</label>
+  <div class="{{ $fieldWrapClass }}">
+    <select id="{{ $idCat }}" name="category" class="report-input report-select">
+      <option value="">— Select —</option>
       @foreach($categoriesList as $cat)
         <option value="{{ $cat }}">{{ $cat }}</option>
       @endforeach
     </select>
-  @endif
+  </div>
 </div>
 
 <div id="{{ $idDocRow }}" style="display:none;" class="{{ $formRowClass }}">
-  @if($isAdmin)
-    <label class="{{ $labelClass }}" for="{{ $idDocType }}">Document Type</label>
-    <div class="{{ $fieldWrapClass }}">
-      <select id="{{ $idDocType }}" name="document_type" class="report-input report-select">
-        <option value="">— Select Document Type —</option>
-        @foreach($documentTypeOptions as $docType)
-          <option value="{{ $docType }}">{{ $docType }}</option>
-        @endforeach
-      </select>
-    </div>
-  @else
-    <label for="{{ $idDocType }}">Document Type</label>
-    <select id="{{ $idDocType }}" name="document_type" class="{{ $formControlClass }}">
-      <option value="">Select Document Type</option>
+  <label class="{{ $labelClass }}" for="{{ $idDocType }}">Document Type</label>
+  <div class="{{ $fieldWrapClass }}">
+    <select id="{{ $idDocType }}" name="document_type" class="report-input report-select">
+      <option value="">— Select Document Type —</option>
       @foreach($documentTypeOptions as $docType)
         <option value="{{ $docType }}">{{ $docType }}</option>
       @endforeach
     </select>
-  @endif
+  </div>
 </div>
+@endif
 
 <div class="{{ $formRowClass }}">
   @if($isAdmin)
@@ -95,7 +93,7 @@
     </div>
   @else
     <label for="{{ $idFull }}">Full Name (Last Name, First Name)</label>
-    <input type="text" id="{{ $idFull }}" name="full_name" class="{{ $formControlClass }}" placeholder="Your full name">
+    <input type="text" id="{{ $idFull }}" name="full_name" class="{{ $formControlClass }}" placeholder="Your full name" value="{{ $studentName ?? '' }}">
   @endif
 </div>
 
@@ -131,23 +129,49 @@
     </div>
   @else
     <label for="{{ $idSid }}">ID (eg: 2230653)</label>
-    <input type="text" id="{{ $idSid }}" name="id" class="{{ $formControlClass }}" placeholder="Student ID">
+    <input type="text" id="{{ $idSid }}" name="id" class="{{ $formControlClass }}" placeholder="Student ID" value="{{ $studentIdAutofill }}">
   @endif
 </div>
 
+{{-- Student: Category + Document Type come after ID --}}
+@if(!$isAdmin)
+<hr class="form-section-divider">
 <div class="{{ $formRowClass }}">
+  <label for="{{ $idCat }}">Category</label>
+  <select id="{{ $idCat }}" name="category" class="{{ $formControlClass }}">
+    <option value="">Select Category</option>
+    @foreach($categoriesList as $cat)
+      <option value="{{ $cat }}">{{ $cat }}</option>
+    @endforeach
+  </select>
+</div>
+
+<div id="{{ $idDocRow }}" style="display:none;" class="{{ $formRowClass }}">
+  <label for="{{ $idDocType }}">Document Type</label>
+  <select id="{{ $idDocType }}" name="document_type" class="{{ $formControlClass }}">
+    <option value="">Select Document Type</option>
+    @foreach($documentTypeOptions as $docType)
+      <option value="{{ $docType }}">{{ $docType }}</option>
+    @endforeach
+  </select>
+</div>
+@else
+<hr class="form-section-divider">
+@endif
+
+<div class="{{ $formRowClass }}" id="{{ $idItemRow }}">
   @if($isAdmin)
-    <label class="{{ $labelClass }}" for="{{ $idItem }}">Item</label>
+    <label class="{{ $labelClass }}" for="{{ $idItem }}" id="{{ $idItemLabel }}">Item</label>
     <div class="{{ $fieldWrapClass }}">
       <input type="text" id="{{ $idItem }}" name="item" class="report-input" placeholder="Name of the lost object">
     </div>
   @else
-    <label for="{{ $idItem }}">Item</label>
+    <label for="{{ $idItem }}" id="{{ $idItemLabel }}">Item</label>
     <input type="text" id="{{ $idItem }}" name="item" class="{{ $formControlClass }}" placeholder="Name of the lost object">
   @endif
 </div>
 
-<div class="{{ $formRowClass }}" style="{{ $isAdmin ? 'align-items: flex-start;' : 'align-items: flex-start;' }}">
+<div class="{{ $formRowClass }}" style="align-items: flex-start;">
   @if($isAdmin)
     <label class="{{ $labelClass }}" for="{{ $idDesc }}">Item Description <span class="report-required">*</span></label>
     <div class="{{ $fieldWrapClass }}">
@@ -158,6 +182,21 @@
     <textarea id="{{ $idDesc }}" name="item_description" class="{{ $formControlClass }}" rows="3" required placeholder="e.g. item has scratch"></textarea>
   @endif
 </div>
+
+@if($isAdmin)
+<p id="{{ $idElecHint }}" style="display:none;margin:-6px 0 8px;padding:6px 12px;font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;line-height:1.4;">
+  <i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>
+  Please specify the device model, brand, and any distinguishing features (e.g. case color, stickers, scratches) so similar-looking gadgets can be differentiated.
+</p>
+@else
+<div class="{{ $formRowClass }}" id="{{ $idElecHint }}" style="display:none;margin-top:-6px;margin-bottom:8px;">
+  <span></span>
+  <p style="margin:0;padding:6px 12px;font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;line-height:1.4;">
+    <i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>
+    Please specify the device model, brand, and any distinguishing features (e.g. case color, stickers, scratches) so similar-looking gadgets can be differentiated.
+  </p>
+</div>
+@endif
 
 <div class="{{ $formRowClass }}">
   @if($isAdmin)
@@ -181,7 +220,7 @@
   @endif
 </div>
 
-<div class="{{ $formRowClass }}">
+<div class="{{ $formRowClass }}" id="{{ $idBrandRow }}">
   @if($isAdmin)
     <label class="{{ $labelClass }}" for="{{ $idBrand }}">Brand</label>
     <div class="{{ $fieldWrapClass }}">
@@ -218,14 +257,18 @@
         <i class="fa-regular fa-image pp-icon"></i>
         <p class="pp-hint">{{ $isAdmin ? 'No photo yet' : 'Optional — add a photo of the item' }}</p>
         <div class="pp-btn-row">
-          <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
+          @if($isAdmin)
+            <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
+          @endif
           <button type="button" class="pp-btn pp-btn--upload" data-pp="upload"><i class="fa-solid fa-upload"></i> Upload</button>
         </div>
       </div>
       <div class="pp-preview" style="display:none">
         <img class="pp-preview-img" src="" alt="Photo preview">
         <div class="pp-preview-actions">
-          <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
+          @if($isAdmin)
+            <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
+          @endif
           <button type="button" class="pp-btn pp-btn--sm" data-pp="upload"><i class="fa-solid fa-upload"></i> Change</button>
           <button type="button" class="pp-btn pp-btn--del" data-pp="remove"><i class="fa-solid fa-xmark"></i></button>
         </div>

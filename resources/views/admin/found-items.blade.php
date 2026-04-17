@@ -158,15 +158,27 @@
     @endif
   </div>
 
-  {{-- ── Tabs + Filters + Actions ──────────────────────────────────────────── --}}
+  {{-- ── Tabs + Actions (left) | Filters (right) ───────────────────────────── --}}
   <form method="get" action="{{ route('admin.found') }}" id="foundFilterForm" class="browse-toolbar">
-    <div class="matched-tabs report-tabs--browse" style="display:inline-flex;gap:12px;">
-      <span class="matched-tab-text matched-tab-active" id="allItemsTab">
-        <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
-      </span>
-      <span class="matched-tab-text" id="guestItemsTab">
-        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
-      </span>
+    <div class="admin-toolbar-left">
+      <div class="matched-tabs report-tabs--browse" style="display:inline-flex;gap:12px;">
+        <span class="matched-tab-text matched-tab-active" id="allItemsTab">
+          <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
+        </span>
+        <span class="matched-tab-text" id="guestItemsTab">
+          <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
+        </span>
+      </div>
+      <div id="allItemsActions" class="admin-found-encode-actions">
+        <button type="button" class="found-btn-encode-orange" id="encodeNewItemBtn">
+          <i class="fa-solid fa-plus"></i> Encode Item
+        </button>
+      </div>
+      <div id="guestActionsBar" style="display:none;">
+        <button type="button" class="found-btn-encode-orange" id="encodeGuestItemBtn">
+          <i class="fa-solid fa-plus"></i> Encode ID
+        </button>
+      </div>
     </div>
     <div id="foundFilterGroup" class="browse-filter-form">
       <div class="browse-filter-filters">
@@ -176,6 +188,7 @@
           @foreach($categoriesInternal as $c)
             <option value="{{ $c }}" {{ request('category') === $c ? 'selected' : '' }}>{{ $c }}</option>
           @endforeach
+          <option value="ID & Nameplate" {{ request('category') === 'ID & Nameplate' ? 'selected' : '' }}>ID &amp; Nameplate (Guest)</option>
         </select>
         <label class="sr-only" for="foundDateFilter">Filter by date</label>
         <select name="date_filter" id="foundDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
@@ -188,19 +201,6 @@
         </select>
         <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
       </div>
-    </div>
-    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="allItemsActions">
-      <button type="button" class="found-btn-encode-orange" id="encodeNewItemBtn">
-        <i class="fa-solid fa-plus"></i> Encode Item
-      </button>
-      <button type="button" class="found-btn-encode-blue" id="encodeReportBtn">
-        <i class="fa-solid fa-file-lines"></i> Encode Report
-      </button>
-    </div>
-    <div id="guestActionsBar" style="display:none;margin-left:auto;">
-      <button type="button" class="found-btn-encode-orange" id="encodeGuestItemBtn">
-        <i class="fa-solid fa-plus"></i> Encode ID
-      </button>
     </div>
   </form>
 
@@ -274,14 +274,15 @@
     </div>
   </div>
 
-  {{-- Guest Items Tab --}}
-  <div id="tab-guest" style="display:none;" class="inventory-card matched-reports-card">
+  {{-- Guest Items Tab (ID & Nameplate + Document & Identification encodes) --}}
+  <div id="tab-guest" class="inventory-card matched-reports-card">
     <div class="inventory-title found-title-guest">Recovered IDs (External)</div>
     <div class="table-wrapper">
       <table class="found-table found-table-guest">
         <thead>
           <tr>
             <th>Barcode ID</th>
+            <th>Category</th>
             <th>Encoded By</th>
             <th>Date Surrendered</th>
             <th>Retention End</th>
@@ -296,39 +297,88 @@
               $meta       = $item->parseDescription();
               $foundByWho = $meta['Found By'] ?? '';
               $timestamp  = $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : ($item->date_encoded ? $item->date_encoded->format('Y-m-d') . ' 00:00:00' : '—');
+              $isDocId    = $item->item_type === 'Document & Identification';
             @endphp
-            <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
-                data-id="{{ $item->id }}"
-                data-color="{{ $item->color }}"
-                data-encoded-by-staff="{{ $item->found_by }}"
-                data-found-by-line="{{ $foundByWho }}"
-                data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
-                data-storage-location="{{ $item->storage_location }}"
-                data-id-type="{{ $meta['ID Type'] ?? '' }}"
-                data-fullname="{{ $meta['Owner'] ?? '' }}"
-                @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
-              <td><strong>{{ $item->id }}</strong></td>
-              <td>{{ $item->found_by ?? '—' }}</td>
-              <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
-              <td>
-                {{ $item->retention_end ?? '—' }}
-                @if($item->is_overdue)
-                  <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
-                @elseif($item->expires_in_30_days)
-                  <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
-                @endif
-              </td>
-              <td>{{ $item->storage_location ?? '—' }}</td>
-              <td>{{ $timestamp }}</td>
-              <td>
-                <div class="found-action-cell">
-                  <button type="button" class="found-btn-view-guest guest-view-btn">View</button>
-                  <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
-                </div>
-              </td>
-            </tr>
+            @if($isDocId)
+              @php
+                $parsedMeta = $item->parseDescription();
+                $itemName   = $parsedMeta['Item Type'] ?? $parsedMeta['Item'] ?? '';
+                $encodedBy  = $parsedMeta['Encoded By'] ?? '';
+                $descForView  = preg_replace('/^Encoded By:\s*.+$/m', '', $item->item_description ?? '');
+                $descForView  = trim(preg_replace("/\n{2,}/", "\n", $descForView));
+              @endphp
+              <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
+                  data-id="{{ $item->id }}"
+                  data-category="{{ $item->item_type }}"
+                  data-color="{{ $item->color }}"
+                  data-brand="{{ $item->brand }}"
+                  data-found-by="{{ $item->found_by }}"
+                  data-found-at="{{ $item->found_at }}"
+                  data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
+                  data-storage-location="{{ $item->storage_location }}"
+                  data-item-description="{{ $descForView }}"
+                  data-item-name="{{ $itemName }}"
+                  data-encoded-by="{{ $encodedBy }}"
+                  data-status="{{ $item->status }}"
+                  data-item-type="{{ $item->item_type }}"
+                  @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
+                <td><strong>{{ $item->id }}</strong></td>
+                <td>{{ $item->item_type ?? '—' }}</td>
+                <td>{{ $encodedBy !== '' ? $encodedBy : ($item->found_by ?? '—') }}</td>
+                <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
+                <td>
+                  {{ $item->retention_end ?? '—' }}
+                  @if($item->is_overdue)
+                    <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
+                  @elseif($item->expires_in_30_days)
+                    <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
+                  @endif
+                </td>
+                <td>{{ $item->storage_location ?? '—' }}</td>
+                <td>{{ $timestamp }}</td>
+                <td>
+                  <div class="found-action-cell">
+                    <button type="button" class="found-btn-view internal-view-btn">View</button>
+                    <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
+                  </div>
+                </td>
+              </tr>
+            @else
+              <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
+                  data-id="{{ $item->id }}"
+                  data-color="{{ $item->color }}"
+                  data-encoded-by-staff="{{ $item->found_by }}"
+                  data-found-by-line="{{ $foundByWho }}"
+                  data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
+                  data-storage-location="{{ $item->storage_location }}"
+                  data-id-type="{{ $meta['ID Type'] ?? '' }}"
+                  data-fullname="{{ $meta['Owner'] ?? '' }}"
+                  data-item-type="{{ $item->item_type }}"
+                  @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
+                <td><strong>{{ $item->id }}</strong></td>
+                <td>{{ $item->item_type ?? '—' }}</td>
+                <td>{{ $item->found_by ?? '—' }}</td>
+                <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
+                <td>
+                  {{ $item->retention_end ?? '—' }}
+                  @if($item->is_overdue)
+                    <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
+                  @elseif($item->expires_in_30_days)
+                    <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
+                  @endif
+                </td>
+                <td>{{ $item->storage_location ?? '—' }}</td>
+                <td>{{ $timestamp }}</td>
+                <td>
+                  <div class="found-action-cell">
+                    <button type="button" class="found-btn-view-guest guest-view-btn">View</button>
+                    <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
+                  </div>
+                </td>
+              </tr>
+            @endif
           @empty
-            <tr><td colspan="7" class="table-empty">No guest items.</td></tr>
+            <tr><td colspan="8" class="table-empty">No guest items.</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -475,26 +525,6 @@
 
 @include('admin.partials.internal-encode-item-modal', ['campusLocations' => $campusLocations])
 
-{{-- ── Encode Report (lost report on behalf of student) — fields match student lost-report modal ─────────────────── --}}
-<div class="report-modal-overlay" id="encodeReportModal" role="dialog" aria-modal="true"
-     onclick="if(event.target===this)closeEncodeReportModal()">
-  <div class="report-modal" onclick="event.stopPropagation()">
-    <div class="report-modal-header">
-      <h2 class="report-modal-title">Item Lost Report</h2>
-      <button type="button" class="report-modal-close" onclick="closeEncodeReportModal()" aria-label="Close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    <form id="encodeReportForm" class="report-modal-body">
-      @include('partials.lost-report-form-fields', ['variant' => 'admin', 'categories' => $categoriesInternal])
-      <div class="report-modal-footer">
-        <button type="button" class="report-btn-cancel" onclick="closeEncodeReportModal()">Cancel</button>
-        <button type="button" class="report-btn-confirm" id="encodeReportSubmitBtn">Next</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 {{-- ── Encode Guest ID Modal (Lost ID Report) ─────────────── --}}
 <div class="report-modal-overlay" id="encodeIdModal" role="dialog" aria-modal="true"
      onclick="if(event.target===this)closeGuestEncodeModal()">
@@ -619,10 +649,8 @@
 })();
 var _encItemPhoto = null;
 var _encGuestPhoto = null;
-var _encReportPhoto = null;
 var _encItemPP = null;
 var _encGuestPP = null;
-var _encReportPP = null;
 
 function _appAlert(msg){ if(typeof window.appUiAlert === 'function') window.appUiAlert(msg); else alert(msg); }
 
@@ -653,33 +681,6 @@ function buildEncodeItemReviewHtml(){
     img
   ].join('');
 }
-function buildEncodeReportReviewHtml(){
-  var img = '';
-  if(typeof _encReportPhoto !== 'undefined' && _encReportPhoto){
-    img = '<div class="report-form-row"><span class="report-form-label">Photo</span><span><img src="'+_escRev(_encReportPhoto)+'" alt="" style="max-width:200px;border-radius:8px;border:1px solid #e5e7eb;"></span></div>';
-  }
-  var cat = (document.getElementById('repCategory')||{}).value || '';
-  var rows = [
-    _rowRev('Student Email', (document.getElementById('repStudentEmail')||{}).value),
-    _rowRev('Category', cat),
-  ];
-  if(cat === 'Document & Identification'){
-    rows.push(_rowRev('Document Type', (document.getElementById('repDocType')||{}).value));
-  }
-  rows.push(
-    _rowRev('Full Name', (document.getElementById('repFullName')||{}).value),
-    _rowRev('Contact Number', (document.getElementById('repContact')||{}).value),
-    _rowRev('Department', (document.getElementById('repDept')||{}).value),
-    _rowRev('ID', (document.getElementById('repId')||{}).value),
-    _rowRev('Item', (document.getElementById('repItem')||{}).value),
-    _rowRev('Item Description', (document.getElementById('repDesc')||{}).value),
-    _rowRev('Color', (document.getElementById('repColor')||{}).value),
-    _rowRev('Brand', (document.getElementById('repBrand')||{}).value),
-    _rowRev('Date Lost', (document.getElementById('repDateLost')||{}).value),
-    img
-  );
-  return rows.join('');
-}
 function buildGuestReviewHtml(){
   var img = '';
   if(typeof _encGuestPhoto !== 'undefined' && _encGuestPhoto){
@@ -707,20 +708,6 @@ function buildGuestReviewHtml(){
   try {
     _encGuestPP = PhotoPicker.init({ el: 'guestIdPhotoPicker',    onChange: function(d){ _encGuestPhoto = d||null; } });
   } catch(e) { console.warn('guestIdPhotoPicker', e); }
-  try {
-    _encReportPP = PhotoPicker.init({ el: 'encodeReportPhotoPicker', onChange: function(d){ _encReportPhoto = d||null; } });
-  } catch(e) { console.warn('encodeReportPhotoPicker', e); }
-})();
-(function(){
-  var repCat = document.getElementById('repCategory');
-  if(!repCat) return;
-  function syncRepDocRow(){
-    var row = document.getElementById('repDocTypeRow');
-    if(!row) return;
-    row.style.display = repCat.value === 'Document & Identification' ? 'grid' : 'none';
-  }
-  repCat.addEventListener('change', syncRepDocRow);
-  syncRepDocRow();
 })();
 var _CSRF = window._CSRF || '';
 var BARCODE_CTX_URL = '{{ route("admin.found.barcode-context") }}';
@@ -787,7 +774,7 @@ function fetchBarcodeContext(barcode){
   if(!allTab||!gstTab) return;
   function showAll(){
     allTab.classList.add('matched-tab-active'); gstTab.classList.remove('matched-tab-active');
-    allSec.style.display=''; gstSec.style.display='none';
+    allSec.style.display=''; gstSec.style.display='';
     if(allAct) allAct.style.display=''; if(gstAct) gstAct.style.display='none';
     if(catSel){ catSel.disabled=false; catSel.style.display=''; }
   }
@@ -795,7 +782,7 @@ function fetchBarcodeContext(barcode){
     gstTab.classList.add('matched-tab-active'); allTab.classList.remove('matched-tab-active');
     gstSec.style.display=''; allSec.style.display='none';
     if(allAct) allAct.style.display='none'; if(gstAct) gstAct.style.display='';
-    if(catSel){ catSel.disabled=true; catSel.style.display='none'; }
+    if(catSel){ catSel.disabled=false; catSel.style.display=''; }
   }
   allTab.addEventListener('click', showAll);
   gstTab.addEventListener('click', showGuest);
@@ -917,94 +904,6 @@ function closeEncodeModal(){
     _appAlert((err && err.message) ? err.message : 'Network error. Try again.');
   });
 });
-})();
-
-function closeEncodeReportModal(){
-  document.getElementById('encodeReportModal').classList.remove('report-modal-open');
-}
-(function(){
-  var b = document.getElementById('encodeReportBtn');
-  if(b) b.addEventListener('click', function(){
-    var f = document.getElementById('encodeReportForm');
-    if(f) f.reset();
-    if(_encReportPP) _encReportPP.clear();
-    _encReportPhoto = null;
-    var repCat = document.getElementById('repCategory');
-    var row = document.getElementById('repDocTypeRow');
-    if(repCat && row) row.style.display = repCat.value === 'Document & Identification' ? 'grid' : 'none';
-    document.getElementById('encodeReportModal').classList.add('report-modal-open');
-  });
-})();
-
-(function(){
-  var sub = document.getElementById('encodeReportSubmitBtn');
-  if(!sub) return;
-  function runEncodeReportPost(btn){
-    var email = document.getElementById('repStudentEmail').value.trim();
-    var contact = document.getElementById('repContact').value.trim();
-    var dept = document.getElementById('repDept').value.trim();
-    var desc = document.getElementById('repDesc').value.trim();
-    var cat = document.getElementById('repCategory').value || '';
-    btn.disabled = true; btn.textContent = 'Saving…';
-    return fetch('{{ route("admin.found.lost-report") }}', {
-      method: 'POST',
-      headers: _foundJsonHeaders(),
-      body: JSON.stringify({
-        student_email:    email,
-        category:         cat,
-        document_type:    (document.getElementById('repDocType') && document.getElementById('repDocType').value) ? document.getElementById('repDocType').value : '',
-        full_name:        document.getElementById('repFullName').value || '',
-        contact_number:   contact,
-        department:       dept,
-        id:               document.getElementById('repId').value || '',
-        item:             document.getElementById('repItem').value || '',
-        item_description: desc,
-        color:            document.getElementById('repColor').value || '',
-        brand:            document.getElementById('repBrand').value || '',
-        date_lost:        document.getElementById('repDateLost').value || '',
-        imageDataUrl:     _encReportPhoto || null
-      })
-    }).then(_parseLaravelFetchResponse).then(function(res){
-      btn.disabled = false; btn.textContent = 'Next';
-      if(res.ok && res.data && res.data.ok){
-        closeEncodeReportModal();
-        closeAdminEncodeReviewModal();
-        showEncodeSuccess(res.data.id);
-      } else {
-        _appAlert(_laravelErrMsg(res) || 'Could not save report.');
-      }
-    }).catch(function(){
-      btn.disabled = false; btn.textContent = 'Next';
-      _appAlert('Network error. Try again.');
-    });
-  }
-  sub.addEventListener('click', function(){
-    var email = document.getElementById('repStudentEmail').value.trim();
-    var contact = document.getElementById('repContact').value.trim();
-    var dept = document.getElementById('repDept').value.trim();
-    var desc = document.getElementById('repDesc').value.trim();
-    var cat = document.getElementById('repCategory').value || '';
-    if(!email){ document.getElementById('repStudentEmail').focus(); return; }
-    if(!contact){ document.getElementById('repContact').focus(); return; }
-    if(!dept){ document.getElementById('repDept').focus(); return; }
-    if(!desc){ document.getElementById('repDesc').focus(); return; }
-    if(cat === 'Document & Identification'){
-      var dt = (document.getElementById('repDocType').value || '').trim();
-      if(!dt){ document.getElementById('repDocType').focus(); return; }
-    }
-    var btn = this;
-    document.getElementById('adminEncodeReviewTitle').textContent = 'Item Lost Report';
-    document.getElementById('adminEncodeReviewSummary').innerHTML = buildEncodeReportReviewHtml();
-    window._adminEncodeReview = {
-      runSubmit: function(){ return runEncodeReportPost(btn); },
-      onBack: function(){
-        document.getElementById('encodeReportModal').classList.add('report-modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    };
-    closeEncodeReportModal();
-    openAdminEncodeReviewModal();
-  });
 })();
 
 // ── Encode Guest ID modal ─────────────────────────────────────────────────
@@ -1314,7 +1213,7 @@ document.addEventListener('keydown', function(e){
     if(typeof ob === 'function') ob();
     return;
   }
-  closeEncodeModal(); closeGuestEncodeModal(); closeEncodeReportModal(); closeViewModal(); closeGuestModal();
+  closeEncodeModal(); closeGuestEncodeModal(); closeViewModal(); closeGuestModal();
 });
 
 // ── Auto-open encode modal if ?encode=1 ───────────────────────────────────

@@ -229,7 +229,7 @@
 
   {{-- ─── Notice ──────────────────────────────────────────────────────────── --}}
   <div class="notice">
-    <strong>Before you start:</strong> Run <code>php artisan db:seed --class=TestDataSeeder</code> in the project root to populate the database with all test data described below. Re-running the seeder wipes and re-seeds all student, item, claim, and log data from scratch.
+    <strong>Note:</strong> Bulk lost/found test data seeders were removed. Ten dummy student accounts (password <code>Password123</code>) are listed under <strong>Student Credentials</strong> and seeded via <code>StudentSeeder</code>. See Hosting and UBmail OAuth below for deployment and Google sign-in.
   </div>
 
   {{-- ─── System URLs ─────────────────────────────────────────────────────── --}}
@@ -279,307 +279,35 @@
   {{-- ─── Student Credentials ─────────────────────────────────────────────── --}}
   <div class="card">
     <div class="card-title">Student Credentials</div>
-    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">All student accounts use password <code>Password123</code>. Login with <strong>email</strong> or <strong>student_number@ub.edu.ph</strong>.</p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Dummy accounts are seeded by <code>StudentSeeder</code> (no lost reports). Email is always <code>STUDENTNUMBER@ub.edu.ph</code>. All use password <code>Password123</code>.</p>
+    <p style="font-size:12.5px;color:#64748b;margin-bottom:12px;">Populate or refresh: <code>php artisan db:seed --class=StudentSeeder</code></p>
     <table>
       <thead>
         <tr>
           <th>#</th>
           <th>Student No.</th>
           <th>Email</th>
-          <th>Name</th>
+          <th>Name (display)</th>
           <th>Dept</th>
-          <th>Key scenario(s)</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>1</td>
-          <td><code>2401001</code></td>
-          <td><code>lea.robles@ub.edu.ph</code></td>
-          <td>Lea Robles</td>
-          <td>CICT</td>
-          <td>S1 (unmatched), extra report</td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td><code>2401002</code></td>
-          <td><code>marco.vega@ub.edu.ph</code></td>
-          <td>Marco Vega</td>
-          <td>CITE</td>
-          <td>S3 (auto-matched, for verification)</td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td><code>2401003</code></td>
-          <td><code>dina.cruz@ub.edu.ph</code></td>
-          <td>Dina Cruz</td>
-          <td>CBA</td>
-          <td>S4 (one of two matched reports)</td>
-        </tr>
-        <tr>
-          <td>4</td>
-          <td><code>2401004</code></td>
-          <td><code>jay.ortiz@ub.edu.ph</code></td>
-          <td>Jay Ortiz</td>
-          <td>CAS</td>
-          <td>S6 (fully claimed)</td>
-        </tr>
-        <tr>
-          <td>5</td>
-          <td><code>1920501</code></td>
-          <td><code>anna.santos@ub.edu.ph</code></td>
-          <td>Anna Santos</td>
-          <td>CON</td>
-          <td>S4 (second matched report), extra unmatched</td>
-        </tr>
-        <tr>
-          <td>6</td>
-          <td><code>2310602</code></td>
-          <td><code>miguel.reyes@ub.edu.ph</code></td>
-          <td>Miguel Reyes</td>
-          <td>CICT</td>
-          <td>S5 (claim intent submitted, pending)</td>
-        </tr>
-        <tr>
-          <td>7</td>
-          <td><code>2215703</code></td>
-          <td><code>grace.lim@ub.edu.ph</code></td>
-          <td>Grace Lim</td>
-          <td>CBA</td>
-          <td>S7 (external ID claimed)</td>
-        </tr>
-        <tr>
-          <td>8</td>
-          <td><code>1830804</code></td>
-          <td><code>kevin.tan@ub.edu.ph</code></td>
-          <td>Kevin Tan</td>
-          <td>CITE</td>
-          <td>S9 (cancelled report), extra unmatched</td>
-        </tr>
-        <tr>
-          <td>9</td>
-          <td><code>2108905</code></td>
-          <td><code>sofia.gabriel@ub.edu.ph</code></td>
-          <td>Sofia Gabriel</td>
-          <td>CAS</td>
-          <td>S11 (full claim with photo, unresolved claimants), extra unmatched</td>
-        </tr>
-        <tr>
-          <td>10</td>
-          <td><code>2312006</code></td>
-          <td><code>ben.aquino@ub.edu.ph</code></td>
-          <td>Ben Aquino</td>
-          <td>CON</td>
-          <td>S12 (rejected claim), extra unmatched</td>
-        </tr>
+        <tr><td>1</td><td><code>2501001</code></td><td><code>2501001@ub.edu.ph</code></td><td>Juan Dela Cruz</td><td>CICT</td></tr>
+        <tr><td>2</td><td><code>2501002</code></td><td><code>2501002@ub.edu.ph</code></td><td>Maria Santos</td><td>CBA</td></tr>
+        <tr><td>3</td><td><code>2501003</code></td><td><code>2501003@ub.edu.ph</code></td><td>Carlo Reyes</td><td>CITE</td></tr>
+        <tr><td>4</td><td><code>2501004</code></td><td><code>2501004@ub.edu.ph</code></td><td>Ana Lim</td><td>CAS</td></tr>
+        <tr><td>5</td><td><code>2501005</code></td><td><code>2501005@ub.edu.ph</code></td><td>Marco Ramos</td><td>CON</td></tr>
+        <tr><td>6</td><td><code>2501006</code></td><td><code>2501006@ub.edu.ph</code></td><td>Jasmine Torres</td><td>CICT</td></tr>
+        <tr><td>7</td><td><code>2501007</code></td><td><code>2501007@ub.edu.ph</code></td><td>Diego Villanueva</td><td>CBA</td></tr>
+        <tr><td>8</td><td><code>2501008</code></td><td><code>2501008@ub.edu.ph</code></td><td>Sofia Mendoza</td><td>CITE</td></tr>
+        <tr><td>9</td><td><code>2501009</code></td><td><code>2501009@ub.edu.ph</code></td><td>Rafael Garcia</td><td>CAS</td></tr>
+        <tr><td>10</td><td><code>2501010</code></td><td><code>2501010@ub.edu.ph</code></td><td>Angela Cruz</td><td>CON</td></tr>
       </tbody>
     </table>
+    <p style="font-size:13px;color:#64748b;margin-top:12px;">Production accounts may also be created manually or via &ldquo;Sign in with UBmail&rdquo; once Google OAuth is configured (see Hosting / UBmail sections below).</p>
   </div>
 
-  {{-- ─── Seeded Items Reference ──────────────────────────────────────────── --}}
-  <div class="card">
-    <div class="card-title">Seeded Items Quick Reference</div>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Type</th>
-          <th>Item</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>UB10001</code></td><td>Miscellaneous</td><td>6-sided Dice</td><td><span class="tag tag-gray">Unclaimed Items</span></td></tr>
-        <tr><td><code>UB10002</code></td><td>Electronics &amp; Gadgets</td><td>iPhone w/ Swirly Case</td><td><span class="tag tag-yellow">For Verification</span></td></tr>
-        <tr><td><code>UB10003</code></td><td>Apparel &amp; Accessories</td><td>Small Silver Ring Necklace</td><td><span class="tag tag-yellow">For Verification</span></td></tr>
-        <tr><td><code>UB10004</code></td><td>Electronics &amp; Gadgets</td><td>iPhone 13 (Black)</td><td><span class="tag tag-yellow">For Verification</span></td></tr>
-        <tr><td><code>UB10005</code></td><td>Personal Belongings</td><td>Star-shaped Keychain</td><td><span class="tag tag-green">Claimed</span></td></tr>
-        <tr><td><code>UB10006</code></td><td>ID &amp; Nameplate</td><td>Student ID Card (Grace Lim)</td><td><span class="tag tag-green">Claimed</span></td></tr>
-        <tr><td><code>UB10007</code></td><td>Apparel &amp; Accessories</td><td>Small Silver Ring (overdue)</td><td><span class="tag tag-gray">Unclaimed Items</span> <span class="tag tag-red" style="font-size:10px;">3yr old</span></td></tr>
-        <tr><td><code>UB10008</code></td><td>Miscellaneous</td><td>Red Dice Set</td><td><span class="tag tag-gray">Unclaimed Items</span></td></tr>
-        <tr><td><code>UB10009</code></td><td>Personal Belongings</td><td>Star Keychain (old)</td><td><span class="tag tag-red">Disposed</span></td></tr>
-        <tr><td><code>UB10010</code></td><td>Electronics &amp; Gadgets</td><td>iPhone w/ Pink Case</td><td><span class="tag tag-blue">Unresolved Claimants</span></td></tr>
-        <tr><td><code>UB10011</code></td><td>Apparel &amp; Accessories</td><td>Silver Pandora Bracelet</td><td><span class="tag tag-gray">Unclaimed Items</span></td></tr>
-        <tr><td><code>UB10012</code></td><td>Electronics &amp; Gadgets</td><td>Samsung Galaxy Buds</td><td><span class="tag tag-gray">Unclaimed Items</span></td></tr>
-      </tbody>
-    </table>
-
-    <hr class="divider">
-
-    <table>
-      <thead>
-        <tr>
-          <th>REF ID (= Ticket)</th>
-          <th>Filed by</th>
-          <th>Item</th>
-          <th>Status</th>
-          <th>Matched to</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>REF-0000000001</code> / <code>TIC-0000000001</code></td><td>Lea Robles</td><td>Samsung Galaxy Earbuds</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000002</code></td><td>Marco Vega</td><td>iPhone 14 w/ Swirly Case</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10002</code></td></tr>
-        <tr><td><code>REF-0000000003</code></td><td>Dina Cruz</td><td>Silver Ring Necklace</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10003</code></td></tr>
-        <tr><td><code>REF-0000000004</code></td><td>Anna Santos</td><td>Silver Ring Necklace</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10003</code></td></tr>
-        <tr><td><code>REF-0000000005</code></td><td>Miguel Reyes</td><td>iPhone 13 Black</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10004</code></td></tr>
-        <tr><td><code>REF-0000000006</code></td><td>Jay Ortiz</td><td>Gold Star Keychain</td><td><span class="tag tag-green">Resolved</span></td><td><code>UB10005</code></td></tr>
-        <tr><td><code>REF-0000000007</code></td><td>Grace Lim</td><td>Student ID Card</td><td><span class="tag tag-green">Resolved</span></td><td><code>UB10006</code></td></tr>
-        <tr><td><code>REF-0000000008</code></td><td>Kevin Tan</td><td>Red Dice Pouch</td><td><span class="tag tag-red">Cancelled</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000009</code></td><td>Sofia Gabriel</td><td>iPhone w/ Pink Case</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10010</code></td></tr>
-        <tr><td><code>REF-0000000010</code></td><td>Ben Aquino</td><td>Silver Pandora Bracelet</td><td><span class="tag tag-yellow">For Verification</span></td><td><code>UB10011</code></td></tr>
-        <tr><td><code>REF-0000000011</code></td><td>Lea Robles</td><td>Brown Leather Wallet</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000012</code></td><td>Kevin Tan</td><td>Samsung Earbuds</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000013</code></td><td>Anna Santos</td><td>National ID</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000014</code></td><td>Ben Aquino</td><td>Blue Water Bottle</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-        <tr><td><code>REF-0000000015</code></td><td>Sofia Gabriel</td><td>Black Umbrella</td><td><span class="tag tag-gray">Unclaimed Items</span></td><td>—</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  {{-- ─── Test Scenarios ──────────────────────────────────────────────────── --}}
-  <div class="card">
-    <div class="card-title">Seeded Test Scenarios</div>
-    <div class="scenario-grid">
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 1</div>
-        <div class="sc-title">Report filed, no match yet</div>
-        <dl>
-          <dt>Student</dt><dd>Lea Robles</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000001</code></dd>
-          <dt>Status</dt><dd><span class="tag tag-gray">Unclaimed Items</span></dd>
-          <dt>Verify</dt><dd>Report appears in student All Reports tab; no card in Recently Matched</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 2</div>
-        <div class="sc-title">Found item encoded, not matched</div>
-        <dl>
-          <dt>Found item</dt><dd><code>UB10001</code> (Dice)</dd>
-          <dt>Status</dt><dd><span class="tag tag-gray">Unclaimed Items</span></dd>
-          <dt>Verify</dt><dd>Visible in admin Found Items list; no linked lost report</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 3</div>
-        <div class="sc-title">Auto-matched, pending verification</div>
-        <dl>
-          <dt>Student</dt><dd>Marco Vega</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000002</code></dd>
-          <dt>Found item</dt><dd><code>UB10002</code> (iPhone)</dd>
-          <dt>Both status</dt><dd><span class="tag tag-yellow">For Verification</span></dd>
-          <dt>Verify</dt><dd>Matched card visible on student dashboard; appears in admin Matched Items list</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 4</div>
-        <div class="sc-title">Two reports matched to one found item</div>
-        <dl>
-          <dt>Students</dt><dd>Dina Cruz + Anna Santos</dd>
-          <dt>Reports</dt><dd><code>REF-0000000003</code> + <code>REF-0000000004</code></dd>
-          <dt>Found item</dt><dd><code>UB10003</code> (Necklace)</dd>
-          <dt>All status</dt><dd><span class="tag tag-yellow">For Verification</span></dd>
-          <dt>Verify</dt><dd>Both students see a match; admin sees two claimants for UB10003</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 5</div>
-        <div class="sc-title">Student submitted claim intent (pending admin)</div>
-        <dl>
-          <dt>Student</dt><dd>Miguel Reyes</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000005</code></dd>
-          <dt>Found item</dt><dd><code>UB10004</code> (iPhone 13)</dd>
-          <dt>Claim</dt><dd><code>CLM-SEED0005</code> — <span class="tag tag-yellow">Pending</span></dd>
-          <dt>Verify</dt><dd>Claim history shows Pending; admin can proceed to confirm claim</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 6</div>
-        <div class="sc-title">Fully claimed by admin</div>
-        <dl>
-          <dt>Student</dt><dd>Jay Ortiz</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000006</code> — <span class="tag tag-green">Resolved</span></dd>
-          <dt>Found item</dt><dd><code>UB10005</code> — <span class="tag tag-green">Claimed</span></dd>
-          <dt>Claim</dt><dd><code>CLM-SEED0006</code></dd>
-          <dt>Verify</dt><dd>Claim History shows Claimed; item has Claim Record appended to description</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 7</div>
-        <div class="sc-title">External ID (ID &amp; Nameplate) — found and claimed</div>
-        <dl>
-          <dt>Student</dt><dd>Grace Lim</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000007</code> — <span class="tag tag-green">Resolved</span></dd>
-          <dt>Found item</dt><dd><code>UB10006</code> (Student ID) — <span class="tag tag-green">Claimed</span></dd>
-          <dt>Verify</dt><dd>ID &amp; Nameplate type; no student-intent gate was required; claim completed directly</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 8</div>
-        <div class="sc-title">Overdue / expired retention</div>
-        <dl>
-          <dt>Found item</dt><dd><code>UB10007</code> (Silver Ring)</dd>
-          <dt>Date encoded</dt><dd>~3 years ago (past 2-year retention)</dd>
-          <dt>Status</dt><dd><span class="tag tag-gray">Unclaimed Items</span></dd>
-          <dt>Verify</dt><dd>Admin Found Items list shows retention warning / overdue flag</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 9</div>
-        <div class="sc-title">Report cancelled by student</div>
-        <dl>
-          <dt>Student</dt><dd>Kevin Tan</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000008</code> — <span class="tag tag-red">Cancelled</span></dd>
-          <dt>Found item reverted</dt><dd><code>UB10008</code> — <span class="tag tag-gray">Unclaimed Items</span></dd>
-          <dt>Verify</dt><dd>Report does not appear in student active reports; found item is back in pool</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 10</div>
-        <div class="sc-title">Disposed found item</div>
-        <dl>
-          <dt>Found item</dt><dd><code>UB10009</code> (Keychain)</dd>
-          <dt>Date encoded</dt><dd>~2 yrs 3 months ago</dd>
-          <dt>Status</dt><dd><span class="tag tag-red">Disposed</span></dd>
-          <dt>Verify</dt><dd>Item should appear only in admin History / archive views; not in active lists</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 11</div>
-        <div class="sc-title">Full claim submitted with photo (Unresolved Claimants)</div>
-        <dl>
-          <dt>Student</dt><dd>Sofia Gabriel</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000009</code></dd>
-          <dt>Found item</dt><dd><code>UB10010</code> (iPhone Pink) — <span class="tag tag-blue">Unresolved Claimants</span></dd>
-          <dt>Claim</dt><dd><code>CLM-SEED0011</code> — <span class="tag tag-yellow">Pending</span> (proof photo attached)</dd>
-          <dt>Verify</dt><dd>Claim History shows Pending; admin sees proof photo on claim detail</dd>
-        </dl>
-      </div>
-
-      <div class="scenario-item">
-        <div class="sc-num">Scenario 12</div>
-        <div class="sc-title">Claim rejected by admin</div>
-        <dl>
-          <dt>Student</dt><dd>Ben Aquino</dd>
-          <dt>Lost report</dt><dd><code>REF-0000000010</code></dd>
-          <dt>Found item</dt><dd><code>UB10011</code> (Silver Bracelet) — <span class="tag tag-gray">Unclaimed Items</span></dd>
-          <dt>Claim</dt><dd><code>CLM-SEED0012</code> — <span class="tag tag-red">Rejected</span></dd>
-          <dt>Verify</dt><dd>Claim History shows Rejected; found item reverted to Unclaimed Items after rejection</dd>
-        </dl>
-      </div>
-
-    </div>
-  </div>
+  {{-- Seeded items / scenarios removed — test data has been purged --}}
 
   {{-- ─── Common Workflows ────────────────────────────────────────────────── --}}
   <div class="card steps">
@@ -626,15 +354,6 @@
       <li>The student's Claim History updates to <span class="tag tag-green">Claimed</span>.</li>
     </ol>
 
-    <hr class="divider">
-
-    <p style="font-size:13px;font-weight:600;margin-bottom:8px;color:#0f172a;">E. Reset test data</p>
-    <ol>
-      <li>Open a terminal in the project root (<code>c:\xampp\htdocs\campus-backend-laravel</code>).</li>
-      <li>Run:</li>
-    </ol>
-    <div class="code-block">php artisan db:seed --class=TestDataSeeder</div>
-    <p style="font-size:12.5px;color:#64748b;margin-top:8px;">This truncates all student, item, claim, activity log, and notification data, then re-seeds everything from scratch. Admin account is preserved.</p>
   </div>
 
   {{-- ─── Developer Notes ─────────────────────────────────────────────────── --}}
@@ -655,25 +374,17 @@
     </table>
 
     <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Key artisan commands</p>
-    <div class="code-block"># Full test data reset
-php artisan db:seed --class=TestDataSeeder
-
-# Only help page + support contacts (no students/items)
+    <div class="code-block"># Seed help page + support contacts
 php artisan db:seed --class=HelpPageSeeder
 
-# Full reset (delegates to TestDataSeeder)
-php artisan db:seed --class=CleanInstallSeeder
-
-# Run all seeders (local env only — also runs TestDataSeeder)
+# Run all seeders
 php artisan db:seed
+
+# Run migrations
+php artisan migrate
 
 # Start dev server (if not using XAMPP)
 php artisan serve</div>
-
-    <hr class="divider">
-
-    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">School database integration (future)</p>
-    <p style="font-size:13px;color:#475569;margin-bottom:8px;">See the comment block at the top of <code>database/seeders/TestDataSeeder.php</code> for a step-by-step guide on connecting to the official UB student database, setting up SSO/LDAP authentication, and migrating to hosted MySQL.</p>
 
     <hr class="divider">
 
@@ -696,6 +407,178 @@ php artisan serve</div>
 
 Lost report: Unclaimed Items → For Verification → Resolved (when found item is Claimed)
                              ↘ Cancelled (student cancelled report)</div>
+  </div>
+
+  {{-- ─── Google Drive Image Storage ─────────────────────────────────────── --}}
+  <div class="card">
+    <div class="card-title">Google Drive Image Storage</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">
+      By default, photos are stored as <strong>base64 data URLs</strong> in <code>image_data</code> (items) and <code>proof_photo</code> (claims).
+      Optional <strong>server-side</strong> upload runs after <code>App\Support\ReportImageNormalizer</code>: when Drive is enabled and credentials are valid,
+      the app stores an HTTPS view URL (<code>https://drive.google.com/uc?export=view&amp;id=…</code>) in the same columns. UI code treats both data URLs and <code>http(s)</code> links as image sources.
+    </p>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Large photos and MySQL <code>max_allowed_packet</code></p>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">
+      If MySQL returns <code>SQLSTATE[08S01] Got a packet bigger than 'max_allowed_packet' bytes</code>, the server rejected an oversized payload.
+      This app resizes photos before persistence (<code>ReportImageNormalizer</code> and <code>public/assets/photo-picker.js</code>).
+      You can still raise <code>max_allowed_packet</code> in <code>my.ini</code> as a safety net.
+    </p>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Service account setup</p>
+    <ol style="font-size:13px;color:#475569;margin-bottom:12px;padding-left:24px;">
+      <li>Create a Google Cloud project, enable the <strong>Google Drive API</strong>, and create a <strong>service account</strong> with a JSON key.</li>
+      <li>Create or pick a Drive folder for uploads. <strong>Share that folder</strong> with the service account email (shown in the JSON as <code>client_email</code>) with <strong>Editor</strong> access.</li>
+      <li>Copy the folder ID from the URL (<code>folders/&lt;FOLDER_ID&gt;</code>).</li>
+      <li>Place the JSON key on the server (e.g. <code>storage/app/google-drive-service-account.json</code>) and point <code>GOOGLE_DRIVE_CREDENTIALS_PATH</code> at it. Do not commit the key.</li>
+    </ol>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Environment variables (<code>.env</code>)</p>
+    <div class="code-block">GOOGLE_DRIVE_ENABLED=true
+GOOGLE_DRIVE_CREDENTIALS_PATH=/full/path/to/service-account.json
+GOOGLE_DRIVE_FOLDER_ID=your-folder-id
+# When true, each uploaded file gets "anyone with the link can view" so &lt;img&gt; tags work without Google sign-in.
+GOOGLE_DRIVE_MAKE_FILES_PUBLIC=true</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">
+      Config is read from <code>config/services.php</code> under <code>google_drive</code>. Implementation: <code>App\Services\GoogleDriveImageService</code> and <code>App\Support\ReportImageStorage</code>.
+    </p>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Placeholder shared folder (replace in production)</p>
+    <div class="code-block"><a href="https://drive.google.com/drive/folders/1wW573BYmNixp6svYEf845QWVoc_Qfy2b?usp=sharing" target="_blank" rel="noopener" style="color:#3b82f6;">https://drive.google.com/drive/folders/1wW573BYmNixp6svYEf845QWVoc_Qfy2b?usp=sharing</a></div>
+  </div>
+
+  {{-- ─── Hosting Guide ────────────────────────────────────────────────────── --}}
+  <div class="card">
+    <div class="card-title">Hosting / Deployment Guide</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">What to change when moving from local XAMPP to a live server (shared hosting, VPS, or cPanel).</p>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">1. <code>.env</code> keys to update</p>
+    <table style="margin-bottom:16px;">
+      <thead><tr><th>Key</th><th>Local value</th><th>Production value</th></tr></thead>
+      <tbody>
+        <tr><td><code>APP_ENV</code></td><td><code>local</code></td><td><code>production</code></td></tr>
+        <tr><td><code>APP_DEBUG</code></td><td><code>true</code></td><td><code>false</code></td></tr>
+        <tr><td><code>APP_URL</code></td><td><code>http://localhost</code></td><td>Your live domain, e.g. <code>https://lostandfound.ub.edu.ph</code></td></tr>
+        <tr><td><code>DB_HOST</code></td><td><code>127.0.0.1</code></td><td>Hosting provider&rsquo;s MySQL host</td></tr>
+        <tr><td><code>DB_DATABASE</code></td><td><code>lostandfound_db</code></td><td>Database name on host</td></tr>
+        <tr><td><code>DB_USERNAME</code></td><td><code>root</code></td><td>Production DB username</td></tr>
+        <tr><td><code>DB_PASSWORD</code></td><td>(empty)</td><td>Production DB password</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">2. Artisan commands on the server</p>
+    <div class="code-block"># Run migrations (--force required in production)
+php artisan migrate --force
+
+# Create the storage symlink
+php artisan storage:link
+
+# Cache config &amp; routes for performance
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">3. Folder permissions</p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">The web server must be able to write to <code>storage/</code> and <code>bootstrap/cache/</code>. On Linux hosts:</p>
+    <div class="code-block">chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">4. Web server rewrite rules</p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Apache: <code>public/.htaccess</code> is already included. Point the document root to the <code>public/</code> folder. On cPanel, set the document root or use an <code>.htaccess</code> redirect in the site root.</p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Nginx: add a <code>try_files $uri $uri/ /index.php?$query_string;</code> directive in your server block.</p>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">5. Second database connection (optional)</p>
+    <p style="font-size:13px;color:#475569;">If the school&rsquo;s student database lives on a separate MySQL server, add a second connection in <code>config/database.php</code> under <code>'connections'</code> (e.g. <code>'school'</code>) and query it with <code>DB::connection('school')-&gt;table(...)</code>.</p>
+  </div>
+
+  {{-- ─── UBmail / Google OAuth Guide ─────────────────────────────────────── --}}
+  <div class="card">
+    <div class="card-title">&ldquo;Sign in with UBmail&rdquo; &mdash; Google OAuth Integration Guide</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">Steps and files to touch when adding Google OAuth so students can sign in with their <code>@ub.edu.ph</code> UBmail account instead of a manual password.</p>
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">1. Install Laravel Socialite</p>
+    <div class="code-block">composer require laravel/socialite</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">2. Google Cloud Console setup</p>
+    <ol style="font-size:13px;color:#475569;padding-left:20px;margin-bottom:12px;">
+      <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">console.cloud.google.com/apis/credentials</a>.</li>
+      <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application).</li>
+      <li>Add your <strong>Authorized redirect URI</strong>: <code>https://YOUR_DOMAIN/auth/google/callback</code>.</li>
+      <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong>.</li>
+    </ol>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">3. <code>.env</code> keys to add</p>
+    <div class="code-block">GOOGLE_CLIENT_ID=your-client-id-here
+GOOGLE_CLIENT_SECRET=your-client-secret-here
+GOOGLE_REDIRECT_URI=https://YOUR_DOMAIN/auth/google/callback</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">4. <code>config/services.php</code></p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Add a <code>google</code> entry inside the returned array:</p>
+    <div class="code-block">'google' => [
+    'client_id'     => env('GOOGLE_CLIENT_ID'),
+    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    'redirect'      => env('GOOGLE_REDIRECT_URI'),
+],</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">5. <code>routes/web.php</code> &mdash; add two routes</p>
+    <div class="code-block">use App\Http\Controllers\Auth\StudentGoogleController;
+
+Route::get('/auth/google',          [StudentGoogleController::class, 'redirect']);
+Route::get('/auth/google/callback', [StudentGoogleController::class, 'callback']);</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">6. New controller &mdash; <code>app/Http/Controllers/Auth/StudentGoogleController.php</code></p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Key logic in <code>callback()</code>:</p>
+    <div class="code-block">$googleUser = Socialite::driver('google')->user();
+$email      = strtolower($googleUser->getEmail());
+
+// Only allow @ub.edu.ph emails
+if (! str_ends_with($email, '@ub.edu.ph')) {
+    return redirect()->route('student.login')
+        ->withErrors(['email' => 'Only @ub.edu.ph accounts are allowed.']);
+}
+
+// Look up existing student by email
+$student = Student::whereRaw('LOWER(email) = ?', [$email])->first();
+
+if (! $student) {
+    // Option A: auto-register from the Google profile
+    // Option B: reject with "account not found" error
+}
+
+session([
+    'student_id'    => $student->id,
+    'student_email' => $student->email,
+    'student_name'  => $student->name ?? $googleUser->getName(),
+]);
+
+return redirect()->route('student.dashboard');</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">7. <code>resources/views/auth/student-login.blade.php</code></p>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;">Add a &ldquo;Sign in with UBmail&rdquo; button/link that points to <code>/auth/google</code>. Place it below or above the existing email/password form. Example:</p>
+    <div class="code-block">&lt;a href="/auth/google" class="ubmail-btn"&gt;Sign in with UBmail&lt;/a&gt;</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">8. Email / account format</p>
+    <p style="font-size:13px;color:#475569;">Student emails (the <code>students.email</code> column) should use the format <code>STUDENTNUMBER@ub.edu.ph</code> (e.g. <code>2401001@ub.edu.ph</code>). The <code>students.name</code> column holds the full display name. When the Google callback fires, match the incoming email against this column.</p>
   </div>
 
   {{-- ─── Footer ──────────────────────────────────────────────────────────── --}}

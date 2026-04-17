@@ -62,13 +62,15 @@ class ReportsController extends Controller
         $recentActivity = $this->buildRecentActivity();
 
         $categories = self::CATEGORIES;
+        $categoriesInternal = self::CATEGORIES;
 
         return view('admin.reports', compact(
             'reports',
             'categoryFilter',
             'search',
             'recentActivity',
-            'categories'
+            'categories',
+            'categoriesInternal'
         ));
     }
 

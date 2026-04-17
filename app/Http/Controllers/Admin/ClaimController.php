@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Item;
 use App\Models\Notification;
+use App\Support\ReportImageNormalizer;
+use App\Support\ReportImageStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,11 +64,21 @@ class ClaimController extends Controller
             $note .= "\nDate Accomplished: " . $validated['date_accomplished'];
         }
 
-        DB::transaction(function () use ($item, $note, $validated) {
+        try {
+            $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl']);
+            $claimImage = ReportImageStorage::storeAfterNormalize($normalized, 'admin-claim-'.$item->id);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+        if ($claimImage === null) {
+            return response()->json(['ok' => false, 'error' => 'Claim photo is required.'], 422);
+        }
+
+        DB::transaction(function () use ($item, $note, $validated, $claimImage) {
             $item->update([
                 'status'           => 'Claimed',
                 'item_description' => ($item->item_description ?? '') . $note,
-                'image_data'       => $validated['imageDataUrl'],
+                'image_data'       => $claimImage,
             ]);
 
             // Resolve any linked REF- lost report

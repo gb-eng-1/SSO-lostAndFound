@@ -16,6 +16,58 @@
     else alert(msg);
   }
 
+  /** Match server ReportImageNormalizer: long edge cap + JPEG (smaller uploads, fewer DB packet errors). */
+  var PP_MAX_EDGE = 1600;
+  var PP_JPEG_QUALITY = 0.82;
+
+  function downscaleCanvasToJpegDataUrl(sourceCanvas, maxEdge, quality) {
+    var w = sourceCanvas.width;
+    var h = sourceCanvas.height;
+    if (!w || !h) return null;
+    var scale = Math.min(1, maxEdge / Math.max(w, h));
+    var nw = Math.max(1, Math.round(w * scale));
+    var nh = Math.max(1, Math.round(h * scale));
+    var c = document.createElement('canvas');
+    c.width = nw;
+    c.height = nh;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, nw, nh);
+    ctx.drawImage(sourceCanvas, 0, 0, nw, nh);
+    return c.toDataURL('image/jpeg', quality);
+  }
+
+  function downscaleImageElementToJpegDataUrl(img, maxEdge, quality) {
+    var w = img.naturalWidth || img.width;
+    var h = img.naturalHeight || img.height;
+    if (!w || !h) return null;
+    var scale = Math.min(1, maxEdge / Math.max(w, h));
+    var nw = Math.max(1, Math.round(w * scale));
+    var nh = Math.max(1, Math.round(h * scale));
+    var c = document.createElement('canvas');
+    c.width = nw;
+    c.height = nh;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, nw, nh);
+    ctx.drawImage(img, 0, 0, nw, nh);
+    return c.toDataURL('image/jpeg', quality);
+  }
+
+  function loadDataUrlAsImage(dataUrl, onDone) {
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var out = downscaleImageElementToJpegDataUrl(img, PP_MAX_EDGE, PP_JPEG_QUALITY);
+        onDone(out || dataUrl);
+      } catch (e) {
+        onDone(dataUrl);
+      }
+    };
+    img.onerror = function () { onDone(dataUrl); };
+    img.src = dataUrl;
+  }
+
   /* ── Singleton camera state ──────────────────────────────────────────── */
   var _stream      = null;
   var _pendingCb   = null;   /* callback(dataUrl) after "Use This Photo" */
@@ -165,7 +217,9 @@
     canvas.width  = video.videoWidth  || 640;
     canvas.height = video.videoHeight || 480;
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    _capturedUrl = canvas.toDataURL('image/jpeg', 0.88);
+    // [GOOGLE DRIVE UPLOAD — replace this block to upload to Drive and return URL]
+    _capturedUrl = downscaleCanvasToJpegDataUrl(canvas, PP_MAX_EDGE, PP_JPEG_QUALITY)
+      || canvas.toDataURL('image/jpeg', PP_JPEG_QUALITY);
     stopStream();
     var shot = g('ppCamShot');
     shot.src = _capturedUrl;
@@ -218,19 +272,25 @@
     var imgEl     = wrap.querySelector('.pp-preview-img');
     var fileInput = wrap.querySelector('.pp-file');
 
-    function showPhoto(dataUrl) {
-      if (imgEl)   imgEl.src = dataUrl;
-      if (idle)    idle.style.display    = 'none';
-      if (preview) preview.style.display = 'block';
-      if (opts.onChange) opts.onChange(dataUrl);
-    }
-
     function clearPhoto() {
       if (imgEl)     imgEl.src = '';
       if (idle)      idle.style.display    = 'block';
       if (preview)   preview.style.display = 'none';
       if (fileInput) fileInput.value = '';
       if (opts.onChange) opts.onChange(null);
+    }
+
+    function showPhoto(dataUrl) {
+      if (!dataUrl) {
+        clearPhoto();
+        return;
+      }
+      loadDataUrlAsImage(dataUrl, function (url) {
+        if (imgEl)   imgEl.src = url;
+        if (idle)    idle.style.display    = 'none';
+        if (preview) preview.style.display = 'block';
+        if (opts.onChange) opts.onChange(url);
+      });
     }
 
     /* Delegate all button clicks within the widget */
@@ -256,6 +316,7 @@
           this.value = '';
           return;
         }
+        // [GOOGLE DRIVE UPLOAD — replace this block to upload to Drive and return URL]
         var reader = new FileReader();
         reader.onload = function (ev) { showPhoto(ev.target.result); };
         reader.readAsDataURL(file);
