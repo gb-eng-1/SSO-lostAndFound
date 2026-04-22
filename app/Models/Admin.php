@@ -25,6 +25,13 @@ class Admin extends Model implements AuthenticatableContract
 
     protected $table = 'admins';
 
+    /**
+     * The `admins` table has only `created_at` (no `updated_at`).
+     * Disable Eloquent's `updated_at` handling so inserts/updates don't
+     * reference a non-existent column.
+     */
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'email',
         'password_hash',
