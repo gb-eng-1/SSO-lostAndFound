@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ClaimController as AdminClaimController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\FoundItemController;
 use App\Http\Controllers\Admin\GuestItemController;
 use App\Http\Controllers\Admin\HistoryController;
@@ -86,8 +87,16 @@ Route::prefix('admin')->middleware('admin.auth')->group(function () {
     Route::get('/reports', [ReportsController::class, 'index'])->name('admin.reports');
     Route::post('/reports/{id}/cancel', [ReportsController::class, 'cancel'])->name('admin.reports.cancel');
 
-    // Export
-    Route::get('/export/dashboard', [ExportController::class, 'dashboard'])->name('admin.export.dashboard');
+    // Export (per-table)
+    Route::get('/export/internal',     [ExportController::class, 'internalItems'])->name('admin.export.internal');
+    Route::get('/export/external',     [ExportController::class, 'externalIds'])->name('admin.export.external');
+    Route::get('/export/claimants',    [ExportController::class, 'unresolvedClaimants'])->name('admin.export.claimants');
+    Route::get('/export/verification', [ExportController::class, 'forVerification'])->name('admin.export.verification');
+
+    // Inventory
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('admin.inventory');
+    Route::get('/inventory/item-detail/{id}', [InventoryController::class, 'itemDetail'])->name('admin.inventory.item-detail');
+    Route::post('/inventory/confirm/{id}', [InventoryController::class, 'confirm'])->name('admin.inventory.confirm');
 
     // Notifications
     Route::get('/notifications',              [AdminNotificationController::class, 'index'])->name('admin.notifications');

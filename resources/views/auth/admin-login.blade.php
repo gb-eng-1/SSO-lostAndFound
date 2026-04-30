@@ -20,6 +20,24 @@
       transition: opacity .4s ease, visibility .4s ease;
     }
     .login-error-popup.hide { opacity: 0; visibility: hidden; }
+    /* Keep password field full-width when JS toggles type to text */
+    .login-form input[type="text"]#password {
+      width: 100%;
+      padding: 12px 44px 12px 18px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      margin-bottom: 0;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .login-form input[type="text"]#password:focus {
+      border-color: #8b0000;
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -40,15 +58,25 @@
                value="{{ old('email') }}" required autocomplete="email">
 
         <label for="password">Password</label>
-        <input type="password" id="password" name="password"
-               required autocomplete="current-password">
+        <div style="position:relative;display:block;width:100%;margin-bottom:20px;">
+          <input type="password" id="password" name="password"
+                 required autocomplete="current-password" style="width:100%;padding-right:44px;margin-bottom:0;">
+          <button type="button" id="togglePassword"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#6b7280;line-height:0;"
+                  aria-label="Show password">
+            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
 
         @error('email')
           <p class="field-error" style="color:#b91c1c;font-size:13px;margin-top:4px;">{{ $message }}</p>
         @enderror
 
         <div class="login-options">
-          <label class="remember-me">
+          <label class="remember-me" style="margin-bottom:0;">
             <input type="checkbox" name="remember" value="1">
             <span>Remember me</span>
           </label>
@@ -82,5 +110,28 @@
     })();
   </script>
   @endif
+
+  <script>
+  (function () {
+    var btn   = document.getElementById('togglePassword');
+    var input = document.getElementById('password');
+    var icon  = document.getElementById('eyeIcon');
+    var eyeOpen   = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    var eyeClosed = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    if (btn && input && icon) {
+      btn.addEventListener('click', function () {
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.innerHTML = eyeClosed;
+          btn.setAttribute('aria-label', 'Hide password');
+        } else {
+          input.type = 'password';
+          icon.innerHTML = eyeOpen;
+          btn.setAttribute('aria-label', 'Show password');
+        }
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

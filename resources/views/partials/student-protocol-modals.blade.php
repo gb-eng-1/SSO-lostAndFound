@@ -64,14 +64,14 @@
         <div class="spm-step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
         <div class="spm-step-body">
           <h3>2. BROWSE &amp; LOCATE</h3>
-          <p>Visit the Browse Items in UB Lost &amp; Found and check for potential matches.</p>
+          <p>Visit the MY REPORTS page in UB Lost and Found and check for potential matches.</p>
         </div>
       </div>
       <div class="spm-step">
         <div class="spm-step-icon"><i class="fa-solid fa-clipboard-check"></i></div>
         <div class="spm-step-body">
           <h3>3. RECLAIM &amp; VERIFY</h3>
-          <p>Once verified, sign the logbook and retrieve your item.</p>
+          <p>Once verified, the SSO will be verifying your details as a transparent record for the retrieval of item.</p>
         </div>
       </div>
     </div>

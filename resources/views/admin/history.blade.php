@@ -87,13 +87,17 @@
             <option value="year">This Year</option>
           </select>
         </div>
+        <button type="button" id="histApplyBtn" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
       </div>
     </div>
   </div>
 
   {{-- ── Claimed Items (Internal) ────────────────────────────────────────────── --}}
   <div id="histAllSection" class="inventory-card matched-reports-card">
-    <div class="inventory-title">Claimed Items (Internal)</div>
+    <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Claimed Items (Internal)</span>
+      <a href="{{ route('admin.export.internal') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="matched-reports-table" id="historyTable">
         <thead>
@@ -163,7 +167,10 @@
 
   {{-- ── Claimed IDs (External) ───────────────────────────────────────────────── --}}
   <div id="histGuestSection" style="display:none;margin-top:16px;" class="inventory-card matched-reports-card">
-    <div class="inventory-title">Claimed IDs (External)</div>
+    <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Claimed IDs (External)</span>
+      <a href="{{ route('admin.export.external') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="matched-reports-table" id="historyGuestTable">
         <thead>
@@ -375,6 +382,17 @@ window.closeHdm = function(){
   gstTab.addEventListener('click', showGuest);
   if(window.location.hash==='#guest') showGuest();
 })();
+
+// ── Apply button ──────────────────────────────────────────────────────────
+document.getElementById('histApplyBtn').addEventListener('click', function(){
+  var filterGuest = document.getElementById('histFilterGuest');
+  if(filterGuest && filterGuest.style.display !== 'none'){
+    document.getElementById('historyGuestDateFilter').dispatchEvent(new Event('change'));
+  } else {
+    document.getElementById('historyCategoryFilter').dispatchEvent(new Event('change'));
+    document.getElementById('historyDateFilter').dispatchEvent(new Event('change'));
+  }
+});
 
 // ── Category filter (All Items tab) ───────────────────────────────────────
 document.getElementById('historyCategoryFilter').addEventListener('change', function(){

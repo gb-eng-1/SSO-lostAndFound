@@ -8,16 +8,14 @@
 
   <div class="browse-toolbar">
     <div class="report-tabs report-tabs--browse">
-      <span class="report-tab active">All Items</span>
+      <a href="{{ route('student.claim-history', ['tab' => 'for-claiming', 'claim_category' => $claimCategoryIdx]) }}"
+         class="report-tab {{ $activeTab === 'for-claiming' ? 'active' : '' }}">For Claiming</a>
+      <a href="{{ route('student.claim-history', ['tab' => 'claimed', 'claim_category' => $claimCategoryIdx]) }}"
+         class="report-tab {{ $activeTab === 'claimed' ? 'active' : '' }}">Claimed</a>
     </div>
     <form method="get" action="{{ route('student.claim-history') }}" class="browse-filter-form">
+      <input type="hidden" name="tab" value="{{ $activeTab }}">
       <div class="browse-filter-filters">
-        <label class="sr-only" for="claimStatusSelect">Status</label>
-        <select name="claim_status" id="claimStatusSelect" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
-          <option value="">Filter By Status</option>
-          <option value="claimed" {{ ($claimStatus ?? '') === 'claimed' ? 'selected' : '' }}>Claimed</option>
-          <option value="pending" {{ ($claimStatus ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
-        </select>
         <label class="sr-only" for="claimCategorySelect">Category</label>
         <select name="claim_category" id="claimCategorySelect" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
           <option value="">Filter By Category</option>
@@ -30,7 +28,7 @@
   </div>
 
   <div class="inventory-card reports-browse-card">
-    <div class="inventory-title">Claimed Items</div>
+    <div class="inventory-title">{{ $activeTab === 'claimed' ? 'Claimed Items' : 'Items For Claiming' }}</div>
     <div class="table-wrapper">
       <table class="reports-data-table reports-browse-table">
         <thead>
@@ -41,7 +39,7 @@
             <th>ID</th>
             <th>Contact Number</th>
             <th>Date Lost</th>
-            <th>Date Claimed</th>
+            <th>{{ $activeTab === 'claimed' ? 'Date Claimed' : 'Date Filed' }}</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -60,17 +58,25 @@
                 <span class="ch-pill {{ $row['status_class'] }}">{{ $row['ui_status'] }}</span>
               </td>
               <td class="reports-action-cell">
-                <button type="button"
-                        class="reports-btn reports-btn-view ch-open-detail"
-                        data-reference-id="{{ $row['reference_id'] }}">View</button>
+                @if(($row['row_type'] ?? 'claim') === 'claim' && !empty($row['reference_id']))
+                  <button type="button"
+                          class="reports-btn reports-btn-view ch-open-detail"
+                          data-reference-id="{{ $row['reference_id'] }}">View</button>
+                @else
+                  <span style="color:#9ca3af;font-size:13px;">—</span>
+                @endif
               </td>
             </tr>
           @empty
             <tr>
               <td colspan="9" class="table-empty">
                 <i class="fa-regular fa-clock" style="font-size:28px;display:block;margin-bottom:10px;color:#d1d5db;"></i>
-                No claims yet. Submit a claim from
-                <a href="{{ route('student.reports', ['filter' => 'matched']) }}" style="color:#8b0000;font-weight:600;">Matched Reports</a>.
+                @if($activeTab === 'claimed')
+                  No claimed items yet.
+                @else
+                  No active claims. Submit a claim from
+                  <a href="{{ route('student.reports', ['filter' => 'matched']) }}" style="color:#8b0000;font-weight:600;">Matched Reports</a>.
+                @endif
               </td>
             </tr>
           @endforelse
@@ -82,6 +88,9 @@
 @endsection
 
 @push('scripts')
+<style>
+.ch-status-cancelled { background:#e5e7eb; color:#374151; }
+</style>
 <div id="chidOverlay" class="chid-overlay" role="dialog" aria-modal="true" aria-labelledby="chidTitle" onclick="if(event.target===this)window.closeChid()">
   <div class="chid-modal" onclick="event.stopPropagation()">
     <div class="chid-header">
@@ -207,8 +216,8 @@
       contactIn.value = cl.contact || '';
       dateIn.value = (cl.date_accomplished && cl.date_accomplished.length>=10) ? cl.date_accomplished.slice(0,10) : (cl.date_accomplished||'');
     } else {
-      nameIn.value = '';
-      contactIn.value = '';
+      nameIn.value = (lost && lost.full_name) ? lost.full_name : '';
+      contactIn.value = (lost && lost.contact) ? lost.contact : '';
       dateIn.value = '';
     }
 

@@ -206,7 +206,10 @@
 
   {{-- Internal Items Tab --}}
   <div id="tab-internal" class="inventory-card matched-reports-card">
-    <div class="inventory-title">Recovered Items (Internal)</div>
+    <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Recovered Items (Internal)</span>
+      <a href="{{ route('admin.export.internal') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="found-table">
         <thead>
@@ -275,8 +278,11 @@
   </div>
 
   {{-- Guest Items Tab (ID & Nameplate + Document & Identification encodes) --}}
-  <div id="tab-guest" class="inventory-card matched-reports-card">
-    <div class="inventory-title found-title-guest">Recovered IDs (External)</div>
+  <div id="tab-guest" class="inventory-card matched-reports-card" style="display:none;">
+    <div class="inventory-title found-title-guest" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Recovered IDs (External)</span>
+      <a href="{{ route('admin.export.external') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="found-table found-table-guest">
         <thead>
@@ -774,7 +780,7 @@ function fetchBarcodeContext(barcode){
   if(!allTab||!gstTab) return;
   function showAll(){
     allTab.classList.add('matched-tab-active'); gstTab.classList.remove('matched-tab-active');
-    allSec.style.display=''; gstSec.style.display='';
+    allSec.style.display=''; gstSec.style.display='none';
     if(allAct) allAct.style.display=''; if(gstAct) gstAct.style.display='none';
     if(catSel){ catSel.disabled=false; catSel.style.display=''; }
   }

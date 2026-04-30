@@ -36,18 +36,12 @@
   var _claimFoundId  = null;
   var _claimLostId   = null;
   var _claimPhoto    = null;
-  var _reportImage   = null;
   var _pendingLostReportPayload = null;
   var _currentPairIndex = null;
 
   var _claimPP = typeof PhotoPicker !== 'undefined' ? PhotoPicker.init({
     el: 'claimPhotoPicker',
     onChange: function(d){ _claimPhoto = d || null; }
-  }) : null;
-
-  var _reportPP = typeof PhotoPicker !== 'undefined' ? PhotoPicker.init({
-    el: 'reportPhotoPicker',
-    onChange: function(d){ _reportImage = d || null; }
   }) : null;
 
   window.openReportModal = function(){
@@ -99,9 +93,6 @@
     add('Color', 'color');
     add('Brand', 'brand');
     add('Date Lost', 'date_lost');
-    if(_reportImage){
-      rows.push('<div class="srm-form-row" style="align-items:flex-start;"><span style="min-width:150px;font-weight:600;color:#374151;">Photo</span><span><img src="'+esc(_reportImage)+'" alt="" style="max-width:220px;max-height:160px;border-radius:8px;border:1px solid #e5e7eb;"></span></div>');
-    }
     return rows.join('');
   }
 
@@ -396,7 +387,6 @@
         return;
       }
     }
-    if(_reportImage) payload.imageDataUrl = _reportImage;
     _pendingLostReportPayload = payload;
     var box = document.getElementById('studentLostReportReviewSummary');
     if(box) box.innerHTML = buildLostReportReviewHtml(payload);

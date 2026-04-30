@@ -244,40 +244,29 @@
   @endif
 </div>
 
-<div class="{{ $formRowClass }}{{ $isAdmin ? ' report-form-row-textarea pp-photo-row' : '' }}" style="{{ !$isAdmin ? 'align-items: flex-start;' : '' }}">
-  @if($isAdmin)
-    <label class="{{ $labelClass }}">Upload Image</label>
-    <div class="{{ $fieldWrapClass }}">
-  @else
-    <label style="padding-top: 8px;">Upload Image</label>
-    <div style="flex:1;">
-  @endif
+@if($isAdmin)
+<div class="{{ $formRowClass }} report-form-row-textarea pp-photo-row">
+  <label class="{{ $labelClass }}">Upload Image</label>
+  <div class="{{ $fieldWrapClass }}">
     <div class="pp-wrap" id="{{ $idPhotoPicker }}">
       <div class="pp-idle">
         <i class="fa-regular fa-image pp-icon"></i>
-        <p class="pp-hint">{{ $isAdmin ? 'No photo yet' : 'Optional — add a photo of the item' }}</p>
+        <p class="pp-hint">No photo yet</p>
         <div class="pp-btn-row">
-          @if($isAdmin)
-            <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
-          @endif
+          <button type="button" class="pp-btn pp-btn--cam" data-pp="camera"><i class="fa-solid fa-camera"></i> Camera</button>
           <button type="button" class="pp-btn pp-btn--upload" data-pp="upload"><i class="fa-solid fa-upload"></i> Upload</button>
         </div>
       </div>
       <div class="pp-preview" style="display:none">
         <img class="pp-preview-img" src="" alt="Photo preview">
         <div class="pp-preview-actions">
-          @if($isAdmin)
-            <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
-          @endif
+          <button type="button" class="pp-btn pp-btn--sm" data-pp="camera"><i class="fa-solid fa-camera"></i> Retake</button>
           <button type="button" class="pp-btn pp-btn--sm" data-pp="upload"><i class="fa-solid fa-upload"></i> Change</button>
           <button type="button" class="pp-btn pp-btn--del" data-pp="remove"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
       <input type="file" class="pp-file" accept="image/*" style="display:none">
     </div>
-  @if($isAdmin)
-    </div>
-  @else
-    </div>
-  @endif
+  </div>
 </div>
+@endif

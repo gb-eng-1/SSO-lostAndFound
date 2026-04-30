@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Claim;
 use App\Models\Item;
 use App\Models\ActivityLog;
+use App\Models\Student;
 use App\Models\Notification;
 use App\Support\FoundAtLocation;
 use App\Support\ReportImageNormalizer;
@@ -107,10 +108,12 @@ class ClaimController extends Controller
             $referenceId
         );
 
-        ActivityLog::log(
+        ActivityLog::record(
             'claim_intent',
+            $foundItem->id,
             "Student claim intent: {$referenceId}",
-            $foundItem->id
+            $studentId,
+            'student'
         );
 
         return response()->json(['ok' => true, 'reference_id' => $referenceId]);
@@ -242,8 +245,13 @@ class ClaimController extends Controller
         $lostSummary = null;
         if ($lost) {
             $meta = $lost->parseDescription();
+            $fullName = $meta['Full Name'] ?? null;
+            if (empty($fullName)) {
+                $fullName = Student::find($studentId)?->name;
+            }
             $lostSummary = [
                 'display_ticket_id' => $lost->display_ticket_id,
+                'full_name'         => $fullName ? trim((string) $fullName) : null,
                 'department'        => $meta['Department'] ?? null,
                 'student_number'    => $meta['Student Number'] ?? null,
                 'contact'           => $meta['Contact'] ?? null,
@@ -291,38 +299,22 @@ class ClaimController extends Controller
     /**
      * GET /student/claim-history
      *
-     * Claim History lists only student-submitted claims. "Pending" means the
-     * student pressed Claim and is waiting for the office to complete the
-     * process; merely being matched by the system does not create a Pending row.
+     * Two tabs:
+     *  - for-claiming: active claims not yet officially claimed (item.status != Claimed, claim not Rejected)
+     *  - claimed: officially claimed items (item.status = Claimed) + this student's cancelled lost reports
      */
     public function history(Request $request)
     {
-        $studentId = session('student_id');
-        $categories = self::CATEGORIES;
+        $studentId    = session('student_id');
+        $studentEmail = session('student_email');
+        $categories   = self::CATEGORIES;
 
-        $claimStatus = (string) $request->query('claim_status', '');
+        $activeTab        = in_array($request->query('tab'), ['for-claiming', 'claimed'], true)
+                            ? $request->query('tab')
+                            : 'for-claiming';
         $claimCategoryIdx = (string) $request->query('claim_category', '');
-        $legacyFilter = (string) $request->query('claim_filter', '');
 
-        if ($legacyFilter !== '' && $claimStatus === '' && $claimCategoryIdx === '') {
-            if ($legacyFilter === 'status_claimed') {
-                $claimStatus = 'claimed';
-            } elseif ($legacyFilter === 'status_pending') {
-                $claimStatus = 'pending';
-            } elseif (preg_match('/^cat_(\d+)$/', $legacyFilter, $m)) {
-                $claimCategoryIdx = $m[1];
-            }
-        }
-
-        $uiStatusFilter = null;
         $categoryFilter = null;
-
-        if ($claimStatus === 'claimed') {
-            $uiStatusFilter = 'Claimed';
-        } elseif ($claimStatus === 'pending') {
-            $uiStatusFilter = 'Pending';
-        }
-
         if ($claimCategoryIdx !== '' && ctype_digit($claimCategoryIdx)) {
             $idx = (int) $claimCategoryIdx;
             if (isset($categories[$idx])) {
@@ -330,29 +322,73 @@ class ClaimController extends Controller
             }
         }
 
-        $query = Claim::where('student_id', $studentId)
-            ->with(['foundItem', 'lostReport']);
+        $tableRows = collect();
 
-        if ($uiStatusFilter === 'Claimed') {
-            $query->whereHas('foundItem', fn ($q) => $q->where('status', 'Claimed'));
-        } elseif ($uiStatusFilter === 'Pending') {
-            $query->where('status', 'Pending');
+        if ($activeTab === 'for-claiming') {
+            $query = Claim::where('student_id', $studentId)
+                ->with(['foundItem', 'lostReport'])
+                ->where('status', '!=', 'Rejected')
+                ->whereHas('foundItem', fn ($q) => $q->where('status', '!=', 'Claimed'));
+
+            if ($categoryFilter) {
+                $query->whereHas('foundItem', fn ($q) => $q->where('item_type', $categoryFilter));
+            }
+
+            $tableRows = $query->orderByDesc('created_at')->get()->map(function (Claim $claim) {
+                return array_merge($this->buildHistoryRow($claim), ['row_type' => 'claim']);
+            });
+        } else {
+            // Officially claimed items
+            $claimQuery = Claim::where('student_id', $studentId)
+                ->with(['foundItem', 'lostReport'])
+                ->whereHas('foundItem', fn ($q) => $q->where('status', 'Claimed'));
+
+            if ($categoryFilter) {
+                $claimQuery->whereHas('foundItem', fn ($q) => $q->where('item_type', $categoryFilter));
+            }
+
+            $claimRows = $claimQuery->orderByDesc('created_at')->get()->map(function (Claim $claim) {
+                return array_merge($this->buildHistoryRow($claim), ['row_type' => 'claim']);
+            });
+
+            // Cancelled lost reports
+            $cancelledQuery = Item::lostReports()
+                ->where('user_id', $studentEmail)
+                ->where('status', 'Cancelled');
+
+            if ($categoryFilter) {
+                $cancelledQuery->where('item_type', $categoryFilter);
+            }
+
+            $cancelledRows = $cancelledQuery->orderByDesc('updated_at')->get()->map(function (Item $item) {
+                $meta       = $item->parseDescription();
+                $type       = $item->item_type ?? '';
+                $category   = (self::CATEGORY_SHORT[$type] ?? $type) ?: '—';
+                $dateLost   = $item->date_lost ? $item->date_lost->format('Y-m-d') : '—';
+                $dateCancelled = $item->updated_at ? $item->updated_at->format('Y-m-d') : '—';
+
+                return [
+                    'row_type'     => 'cancelled_report',
+                    'reference_id' => null,
+                    'ticket_id'    => $item->display_ticket_id ?? '—',
+                    'category'     => $category,
+                    'department'   => $meta['Department'] ?? '—',
+                    'student_id'   => $meta['Student Number'] ?? '—',
+                    'contact'      => $meta['Contact'] ?? '—',
+                    'date_lost'    => $dateLost,
+                    'date_claimed' => $dateCancelled,
+                    'ui_status'    => 'Cancelled',
+                    'status_class' => 'ch-status-cancelled',
+                ];
+            });
+
+            $tableRows = $claimRows->concat($cancelledRows)->sortByDesc('date_claimed')->values();
         }
-
-        if ($categoryFilter) {
-            $query->whereHas('foundItem', fn ($q) => $q->where('item_type', $categoryFilter));
-        }
-
-        $claims = $query->orderByDesc('created_at')->get();
-
-        $tableRows = $claims->map(function (Claim $claim) {
-            return array_merge($this->buildHistoryRow($claim), ['claim' => $claim]);
-        });
 
         return view('student.claim-history', [
             'tableRows'        => $tableRows,
             'categories'       => $categories,
-            'claimStatus'      => $claimStatus,
+            'activeTab'        => $activeTab,
             'claimCategoryIdx' => $claimCategoryIdx,
         ]);
     }

@@ -412,6 +412,9 @@
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
+.table-wrapper {
+  overflow-x: auto;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    FORM INPUTS — consistent styling inside modals

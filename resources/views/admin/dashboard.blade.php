@@ -76,9 +76,6 @@
     <a href="#" class="dashboard-btn-encode" onclick="openEncodeModal(event)">
       <i class="fa-solid fa-plus dashboard-action-icon dashboard-action-icon--encode"></i> Encode Item
     </a>
-    <a href="{{ route('admin.export.dashboard') }}" class="dashboard-btn-export">
-      <i class="fa-solid fa-file-excel dashboard-action-icon dashboard-action-icon--export"></i> Export Report
-    </a>
   </div>
 </div>
 
@@ -92,7 +89,11 @@
     <div class="dash-table-card">
       <div class="dash-table-header">
         <span class="dash-table-title">Recovered Item (Internal)</span>
-        <a href="{{ route('admin.found') }}" class="dash-see-all">see all</a>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button type="button" class="dash-tbl-btn dash-tbl-btn--encode" onclick="openEncodeModal(event)">+ Encode</button>
+          <a href="{{ route('admin.export.internal') }}" class="dash-tbl-btn dash-tbl-btn--export">+ Export</a>
+          <a href="{{ route('admin.found') }}" class="dash-see-all">see all</a>
+        </div>
       </div>
       <div class="dash-table-scroll">
         <table class="dash-table">
@@ -126,7 +127,11 @@
     <div class="dash-table-card">
       <div class="dash-table-header">
         <span class="dash-table-title">Recovered IDs (External)</span>
-        <a href="{{ route('admin.found') }}" class="dash-see-all">see all</a>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <a href="{{ route('admin.found') }}#guest" class="dash-tbl-btn dash-tbl-btn--encode">+ Encode</a>
+          <a href="{{ route('admin.export.external') }}" class="dash-tbl-btn dash-tbl-btn--export">+ Export</a>
+          <a href="{{ route('admin.found') }}" class="dash-see-all">see all</a>
+        </div>
       </div>
       <div class="dash-table-scroll">
         <table class="dash-table">
@@ -175,7 +180,11 @@
     <div class="dash-table-card">
       <div class="dash-table-header">
         <span class="dash-table-title">Unresolved claimants</span>
-        <a href="{{ route('admin.reports') }}" class="dash-see-all">see all</a>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <a href="{{ route('admin.reports') }}" class="dash-tbl-btn dash-tbl-btn--encode">+ Encode</a>
+          <a href="{{ route('admin.export.claimants') }}" class="dash-tbl-btn dash-tbl-btn--export">+ Export</a>
+          <a href="{{ route('admin.reports') }}" class="dash-see-all">see all</a>
+        </div>
       </div>
       <div class="dash-table-scroll">
         <table class="dash-table">
@@ -209,7 +218,11 @@
     <div class="dash-table-card">
       <div class="dash-table-header">
         <span class="dash-table-title">For Verification</span>
-        <a href="{{ route('admin.matched') }}" class="dash-see-all">see all</a>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button type="button" class="dash-tbl-btn dash-tbl-btn--encode" onclick="openEncodeModal(event)">+ Encode</button>
+          <a href="{{ route('admin.export.verification') }}" class="dash-tbl-btn dash-tbl-btn--export">+ Export</a>
+          <a href="{{ route('admin.matched') }}" class="dash-see-all">see all</a>
+        </div>
       </div>
       <div class="dash-table-scroll">
         <table class="dash-table">
@@ -334,6 +347,14 @@
 
 @push('styles')
 <style>
+/* ── Per-table action buttons ────────────────────────────────────────────── */
+.dash-tbl-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;border:none;text-decoration:none;display:inline-flex;align-items:center;line-height:1.4;}
+.dash-tbl-btn--encode{background:#8b0000;color:#fff;}
+.dash-tbl-btn--encode:hover{background:#6e0000;color:#fff;}
+.dash-tbl-btn--export{background:#15803d;color:#fff;}
+.dash-tbl-btn--export:hover{background:#166534;color:#fff;}
+.dash-table-header{flex-wrap:wrap;gap:6px;}
+
 /* ── Icon colour overrides matching original ──────────────────────────────── */
 .summary-icon-wrap.unclaimed  i,
 .summary-bg-icon.unclaimed    i { color: #F59E0B !important; }

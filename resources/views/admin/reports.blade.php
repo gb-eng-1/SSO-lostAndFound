@@ -32,12 +32,13 @@
       <form method="GET" action="{{ route('admin.reports') }}" class="browse-filter-form">
         <div class="browse-filter-filters">
           <label class="sr-only" for="adminReportsCategory">Filter by category</label>
-          <select name="category" id="adminReportsCategory" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category" onchange="this.form.submit()">
+          <select name="category" id="adminReportsCategory" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
             <option value="">Filter By Category</option>
             @foreach($categories as $cat)
               <option value="{{ $cat }}" {{ $categoryFilter === $cat ? 'selected' : '' }}>{{ $cat }}</option>
             @endforeach
           </select>
+          <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
         </div>
         @if($search)
           <input type="hidden" name="search" value="{{ $search }}">
@@ -47,7 +48,10 @@
 
     {{-- Unresolved Claimants table --}}
     <div class="inventory-card reports-card">
-      <div class="inventory-title">Unresolved Claimants</div>
+      <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Unresolved Claimants</span>
+        <a href="{{ route('admin.export.claimants') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+      </div>
       <div class="table-wrapper">
         <table class="reports-table">
           <thead>

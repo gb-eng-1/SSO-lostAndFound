@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             HelpPageSeeder::class,
             StudentSeeder::class,
+            ScenarioSeeder::class,
         ]);
     }
 }

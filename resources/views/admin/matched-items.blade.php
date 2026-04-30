@@ -111,6 +111,7 @@
       <span class="matched-tab-text" id="guestItemsTab">
         <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
       </span>
+      <a href="{{ route('admin.inventory') }}" class="found-btn" style="background:#8b0000;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;margin-left:6px;">View Inventory</a>
     </div>
     <div class="browse-filter-form">
       <div class="browse-filter-filters">
@@ -128,13 +129,17 @@
           <option value="week">This Week</option>
           <option value="month">This Month</option>
         </select>
+        <button type="button" id="matchedApplyBtn" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
       </div>
     </div>
   </div>
 
   {{-- ── For Claiming (Internal) ─────────────────────────────────────────────── --}}
   <div id="recoveredSection" class="inventory-card matched-reports-card">
-    <div class="inventory-title">For Claiming (Internal)</div>
+    <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>For Claiming (Internal)</span>
+      <a href="{{ route('admin.export.internal') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="matched-reports-table" id="matchedReportsTable">
         <thead>
@@ -198,7 +203,10 @@
 
   {{-- ── For Claiming (External) ─────────────────────────────────────────────── --}}
   <div id="guestSection" style="display:none;" class="inventory-card matched-reports-card">
-    <div class="inventory-title found-title-guest">For Claiming (External)</div>
+    <div class="inventory-title found-title-guest" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>For Claiming (External)</span>
+      <a href="{{ route('admin.export.external') }}" class="found-btn" style="background:#15803d;color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">+ Export</a>
+    </div>
     <div class="table-wrapper">
       <table class="matched-reports-table" id="guestReportsTable">
         <thead>
@@ -418,6 +426,22 @@ var _ccmIsGuest = false;
   allTab.addEventListener('click', showAll);
   gstTab.addEventListener('click', showGuest);
 })();
+
+// ── Apply button ──────────────────────────────────────────────────────────
+document.getElementById('matchedApplyBtn').addEventListener('click', function(){
+  var dateFlt = document.getElementById('matchedDateFilter');
+  var catFlt  = document.getElementById('matchedCategoryFilter');
+  if(dateFlt.style.display === 'none' || dateFlt.style.display === ''){
+    // All Items tab active — apply category filter
+    if(catFlt.style.display !== 'none') {
+      catFlt.dispatchEvent(new Event('change'));
+    } else {
+      dateFlt.dispatchEvent(new Event('change'));
+    }
+  } else {
+    dateFlt.dispatchEvent(new Event('change'));
+  }
+});
 
 // ── Category filter (All Items tab) ────────────────────────────────────────
 document.getElementById('matchedCategoryFilter').addEventListener('change', function(){
