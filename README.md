@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # UB Lost & Found System — Developer / Tester Guide
 
 Internal reference for testing, seeding, and exploring system workflows. In a local install this content is also available at `/dev-guide` (not linked from the UI).
@@ -314,3 +315,6 @@ Student emails (the `students.email` column) should use the format `STUDENTNUMBE
 ---
 
 *UB Lost & Found System — Developer guide — internal use only*
+=======
+read DEV-GUIDE-README for more notes on setting up!
+>>>>>>> 1ad696d07a43d95cb35de35717b59a1059d1a930
