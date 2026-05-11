@@ -59,6 +59,21 @@
     <h1 class="page-title">Inventory</h1>
   </div>
 
+  {{-- ── Tab navigation ───────────────────────────────────────────────────────── --}}
+  <div class="browse-toolbar" style="margin-bottom:12px;">
+    <div class="matched-tabs report-tabs--browse">
+      <a href="{{ route('admin.matched') }}?tab=all" class="matched-tab-text" style="text-decoration:none;">
+        <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
+      </a>
+      <a href="{{ route('admin.matched') }}?tab=guest" class="matched-tab-text" style="text-decoration:none;">
+        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
+      </a>
+      <span class="matched-tab-text matched-tab-active">
+        <i class="fa-solid fa-boxes-stacked" style="margin-right:5px;font-size:12px;"></i>Inventory
+      </span>
+    </div>
+  </div>
+
   {{-- ── Filter bar ─────────────────────────────────────────────────────────── --}}
   <form method="GET" action="{{ route('admin.inventory') }}">
     <div class="browse-toolbar" style="margin-bottom:16px;">
@@ -66,10 +81,15 @@
         <div class="browse-filter-filters">
           <label class="sr-only" for="invCategoryFilter">Filter by category</label>
           <select id="invCategoryFilter" name="category" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
-            <option value="">Filter By Category</option>
+            <option value="" {{ !$category ? 'selected' : '' }}>Filter By Category</option>
             @foreach($categories as $cat)
               <option value="{{ $cat }}" {{ $category === $cat ? 'selected' : '' }}>{{ $cat }}</option>
             @endforeach
+          </select>
+          <label class="sr-only" for="invExpiredFilter">Filter by condition</label>
+          <select id="invExpiredFilter" name="expired" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by condition">
+            <option value="" {{ !$expired ? 'selected' : '' }}>All Conditions</option>
+            <option value="1" {{ $expired ? 'selected' : '' }}>Expired Items</option>
           </select>
           <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
         </div>

@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\Notification;
 use App\Models\Student;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -176,27 +177,32 @@ class AutoMatchService
                         'linked_at'      => now(),
                     ]);
                 }
-
-                $this->notifyStudent($report, $found);
-
-                Notification::notifyAdmin(
-                    'item_matched',
-                    'Auto-Match Found',
-                    "Lost report {$report->id} was automatically matched to found item {$found->id}.",
-                    $found->id
-                );
-
-                ActivityLog::record(
-                    'matched',
-                    $found->id,
-                    "Auto-linked to {$report->id}",
-                    null,
-                    'system'
-                );
             });
-        } catch (Throwable) {
-            // Non-fatal: matching failure must not break the parent request
+        } catch (Throwable $e) {
+            Log::error('AutoMatch link() failed', [
+                'report' => $report->id,
+                'found'  => $found->id,
+                'error'  => $e->getMessage(),
+            ]);
+            return;
         }
+
+        $this->notifyStudent($report, $found);
+
+        Notification::notifyAdmin(
+            'item_matched',
+            'Auto-Match Found',
+            "Lost report {$report->id} was automatically matched to found item {$found->id}.",
+            $found->id
+        );
+
+        ActivityLog::record(
+            'matched',
+            $found->id,
+            "Auto-linked to {$report->id}",
+            null,
+            'system'
+        );
     }
 
     private function notifyStudent(Item $report, Item $found): void
@@ -205,7 +211,8 @@ class AutoMatchService
             return;
         }
 
-        $student = Student::where('email', $report->user_id)->first();
+        $student = Student::where('email', $report->user_id)->first()
+            ?? Student::where('student_id', str_replace('@ub.edu.ph', '', $report->user_id))->first();
         if (!$student) {
             return;
         }

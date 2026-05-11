@@ -233,8 +233,11 @@
     var summaryUrl = @json(route('student.dashboard.summary'));
     var lastHash = '';
 
-    function hashPayload(pairs) {
-      return JSON.stringify((pairs || []).map(function(p){ return p.lost_id + ':' + (p.claimable ? '1' : '0') + ':' + (p.claim_intent_submitted ? '1' : '0'); }));
+    function hashPayload(pairs, notifCount) {
+      return JSON.stringify({
+        pairs: (pairs || []).map(function(p){ return p.lost_id + ':' + (p.claimable ? '1' : '0') + ':' + (p.claim_intent_submitted ? '1' : '0'); }),
+        notif: notifCount || 0
+      });
     }
 
     function buildCardHtml(p, idx) {
@@ -304,6 +307,20 @@
         }
       }
 
+      // Notification badge
+      var notifBadge = document.getElementById('notifBadge');
+      if (notifBadge && typeof data.unread_notifications_count !== 'undefined') {
+        var cnt = data.unread_notifications_count;
+        if (cnt > 0) {
+          notifBadge.textContent = cnt > 99 ? '99+' : String(cnt);
+          notifBadge.style.display = 'inline-flex';
+          notifBadge.setAttribute('aria-label', cnt + ' unread notifications');
+        } else {
+          notifBadge.style.display = 'none';
+          notifBadge.removeAttribute('aria-label');
+        }
+      }
+
       // My Reports preview table
       var preview = data.my_reports_preview || [];
       var tbody = document.querySelector('.reports-table tbody');
@@ -330,7 +347,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!data.ok) return;
-          var h = hashPayload(data.matched_pairs_payload);
+          var h = hashPayload(data.matched_pairs_payload, data.unread_notifications_count);
           if (lastHash === '') { lastHash = h; return; }
           if (h !== lastHash) {
             lastHash = h;
@@ -340,7 +357,7 @@
         .catch(function(){});
     }
 
-    lastHash = hashPayload(window.STUDENT_MATCH_PAIRS || []);
+    lastHash = hashPayload(window.STUDENT_MATCH_PAIRS || [], {{ \App\Models\Notification::forStudent((int) session('student_id', 0))->where('is_read', false)->count() }});
     setInterval(poll, 15000);
   })();
   </script>

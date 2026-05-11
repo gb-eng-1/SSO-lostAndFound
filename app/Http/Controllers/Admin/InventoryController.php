@@ -29,6 +29,7 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $category = $request->query('category');
+        $expired  = $request->boolean('expired');
 
         $items = Item::foundItems()
             ->where(function ($q) {
@@ -37,6 +38,7 @@ class InventoryController extends Controller
             })
             ->where('status', 'Unclaimed Items')
             ->when($category, fn ($q) => $q->where('item_type', $category))
+            ->when($expired,  fn ($q) => $q->whereDate('date_encoded', '<=', now()->subYears(self::INTERNAL_RETENTION_YEARS)))
             ->orderByDesc('date_encoded')
             ->get()
             ->map(fn ($item) => $this->attachRetention($item));
@@ -48,6 +50,7 @@ class InventoryController extends Controller
             'overdueCount' => $overdueCount,
             'categories'   => self::CATEGORIES,
             'category'     => $category,
+            'expired'      => $expired,
         ]);
     }
 

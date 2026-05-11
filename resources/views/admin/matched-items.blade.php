@@ -702,5 +702,14 @@ document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
   closeGuestDetailsModal(); closeConfirmClaimModal();
 });
+
+// Auto-select tab based on ?tab query param (used when navigating from the Inventory page)
+(function () {
+  var initTab = @json(request()->query('tab', 'all'));
+  if (initTab === 'guest') {
+    var gt = document.getElementById('guestItemsTab');
+    if (gt) gt.click();
+  }
+})();
 </script>
 @endpush

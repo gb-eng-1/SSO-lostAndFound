@@ -17,16 +17,19 @@ class MatchedItemController extends Controller
     /** GET /admin/matched */
     public function index()
     {
-        // Internal: non-ID found items that have been auto-matched (For Verification)
+        // Internal: non-ID found items that have been auto-matched or have an acknowledged claim
         $foundItems = Item::foundItems()
-            ->where('status', 'For Verification')
+            ->whereIn('status', ['For Verification', 'Unresolved Claimants'])
             ->where('item_type', '!=', 'ID & Nameplate')
             ->orderByDesc('date_encoded')
             ->get()
             ->map(function ($item) {
                 $item = $this->attachRetention($item, 2);
-                $item->admin_claim_gated = $item->requiresStudentClaimIntentBeforeAdminClaim()
-                    && ! $item->hasStudentClaimIntentForAdminClaim();
+                // 'Unresolved Claimants' means the student already acknowledged — never gate
+                $item->admin_claim_gated = $item->status === 'Unresolved Claimants'
+                    ? false
+                    : ($item->requiresStudentClaimIntentBeforeAdminClaim()
+                        && ! $item->hasStudentClaimIntentForAdminClaim());
 
                 return $item;
             });

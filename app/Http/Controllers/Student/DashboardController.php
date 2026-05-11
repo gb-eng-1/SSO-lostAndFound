@@ -65,10 +65,15 @@ class DashboardController extends Controller
             ])
             ->values();
 
+        $unreadNotifCount = Notification::forStudent((int) $studentId)
+            ->where('is_read', false)
+            ->count();
+
         return response()->json([
-            'ok'                    => true,
-            'matched_pairs_payload' => $matchedPairsPayload,
-            'my_reports_preview'    => $myReportsPreview,
+            'ok'                        => true,
+            'matched_pairs_payload'     => $matchedPairsPayload,
+            'my_reports_preview'        => $myReportsPreview,
+            'unread_notifications_count' => $unreadNotifCount,
         ]);
     }
 

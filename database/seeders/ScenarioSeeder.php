@@ -51,8 +51,9 @@ class ScenarioSeeder extends Seeder
         $this->seedItemMatches($now);
         $this->seedClaims($studentIds, $now, $d);
         $this->seedActivityLog($studentIds, $now, $d);
+        $this->seedDemoMatchesForJuan($now, $d);
 
-        $this->command->info('ScenarioSeeder: complete — 35 found items, 14 lost reports, 13 claims.');
+        $this->command->info('ScenarioSeeder: complete — 38 found items, 17 lost reports, 13 claims.');
     }
 
     // ── Found Items ───────────────────────────────────────────────────────────
@@ -373,5 +374,128 @@ class ScenarioSeeder extends Seeder
         } else {
             $this->command->info('ScenarioSeeder: activity_log already seeded — skipped.');
         }
+    }
+
+    // ── Demo matches for Juan Dela Cruz (2501001) — no claims yet ─────────────
+
+    private function seedDemoMatchesForJuan(string $now, callable $d): void
+    {
+        // Three found items already matched (status For Verification)
+        $foundItems = [
+            ['UB30036', 'Personal Belongings',   'Backpack',  'Black', 'JanSport', 'CICT Building Ground Floor',   $d(12), 'Cabinet D, Shelf 3'],
+            ['UB30037', 'Apparel & Accessories',  'Hoodie',    'Gray',  null,       'Library Building 2F',          $d(6),  'Cabinet A, Shelf 7'],
+            ['UB30038', 'Miscellaneous',          'Keys',      null,    null,       'Main Canteen Tables',           $d(9),  'Cabinet A, Shelf 8'],
+        ];
+
+        foreach ($foundItems as [$id, $type, $item, $color, $brand, $foundAt, $dateEnc, $storage]) {
+            DB::table('items')->updateOrInsert(['id' => $id], [
+                'user_id'            => null,
+                'item_type'          => $type,
+                'color'              => $color,
+                'brand'              => $brand,
+                'found_at'           => $foundAt,
+                'found_by'           => 'security.guard@ub.edu.ph',
+                'date_encoded'       => $dateEnc,
+                'date_lost'          => null,
+                'item_description'   => "Item: {$item}\nFound By: security.guard@ub.edu.ph\nEncoded By: SSO Staff",
+                'storage_location'   => $storage,
+                'image_data'         => null,
+                'status'             => 'For Verification',
+                'disposal_deadline'  => null,
+                'matched_barcode_id' => null,
+                'created_at'         => $now,
+                'updated_at'         => $now,
+            ]);
+        }
+
+        // Three lost reports for Juan — no claim records attached
+        $reports = [
+            ['REF-0000030015', 'Personal Belongings',  'Backpack', 'Black', 'JanSport', $d(17), 'UB30036'],
+            ['REF-0000030016', 'Apparel & Accessories', 'Hoodie',  'Gray',  null,        $d(10), 'UB30037'],
+            ['REF-0000030017', 'Miscellaneous',         'Keys',    null,    null,         $d(14), 'UB30038'],
+        ];
+
+        foreach ($reports as [$id, $type, $item, $color, $brand, $dateLost, $matched]) {
+            $desc = "Full Name: Juan Dela Cruz\nStudent Number: 2501001\nContact: 09123456789\nDepartment: CICT\nItem: {$item}";
+            if ($color) $desc .= "\nColor noted: {$color}";
+            if ($brand)  $desc .= "\nBrand noted: {$brand}";
+
+            DB::table('items')->updateOrInsert(['id' => $id], [
+                'user_id'            => '2501001@ub.edu.ph',
+                'item_type'          => $type,
+                'color'              => $color,
+                'brand'              => $brand,
+                'found_at'           => null,
+                'found_by'           => null,
+                'date_encoded'       => null,
+                'date_lost'          => $dateLost,
+                'item_description'   => $desc,
+                'storage_location'   => null,
+                'image_data'         => null,
+                'status'             => 'For Verification',
+                'disposal_deadline'  => null,
+                'matched_barcode_id' => $matched,
+                'created_at'         => $now,
+                'updated_at'         => $now,
+            ]);
+        }
+
+        // item_matches links
+        $pairs = [
+            ['UB30036', 'REF-0000030015'],
+            ['UB30037', 'REF-0000030016'],
+            ['UB30038', 'REF-0000030017'],
+        ];
+
+        foreach ($pairs as [$found, $report]) {
+            $exists = DB::table('item_matches')
+                ->where('found_item_id', $found)
+                ->where('lost_report_id', $report)
+                ->exists();
+
+            if (!$exists) {
+                DB::table('item_matches')->insert([
+                    'found_item_id'  => $found,
+                    'lost_report_id' => $report,
+                    'linked_at'      => $now,
+                ]);
+            }
+        }
+
+        // Activity log — lost_report + matched entries
+        $alreadySeeded = DB::table('activity_log')
+            ->where('item_id', 'REF-0000030015')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(details, '$.source')) = 'seed'")
+            ->exists();
+
+        if (!$alreadySeeded) {
+            $juanId = DB::table('students')->where('email', '2501001@ub.edu.ph')->value('id');
+
+            $logEntries = [];
+            foreach (['REF-0000030015', 'REF-0000030016', 'REF-0000030017'] as $rId) {
+                $logEntries[] = [
+                    'item_id'    => $rId,
+                    'action'     => 'lost_report',
+                    'actor_id'   => $juanId,
+                    'actor_type' => 'student',
+                    'details'    => json_encode(['source' => 'seed']),
+                    'created_at' => $now,
+                ];
+            }
+            foreach ($pairs as [$found, $report]) {
+                $logEntries[] = [
+                    'item_id'    => $found,
+                    'action'     => 'matched',
+                    'actor_id'   => null,
+                    'actor_type' => 'system',
+                    'details'    => json_encode(['linked_report' => $report, 'source' => 'seed']),
+                    'created_at' => $now,
+                ];
+            }
+
+            DB::table('activity_log')->insert($logEntries);
+        }
+
+        $this->command->info('ScenarioSeeder: 3 demo matched pairs for Juan Dela Cruz (no claims) seeded.');
     }
 }
