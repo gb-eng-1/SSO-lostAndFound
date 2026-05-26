@@ -179,9 +179,15 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.reports-modal-body {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
 .reports-modal-body .reports-modal-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: baseline;
   gap: 12px;
   padding: 6px 0;
@@ -202,7 +208,7 @@
 .reports-modal-value {
   font-weight: 700;
   color: #111827;
-  text-align: right;
+  text-align: left;
   word-break: break-word;
 }
 
@@ -323,16 +329,6 @@
   cursor: pointer;
 }
 
-.reports-filter::after {
-  content: "▾";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 11px;
-  color: #4b5563;
-  pointer-events: none;
-}
 
 /* Reports table card */
 .reports-card {

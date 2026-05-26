@@ -13,18 +13,29 @@
       <a href="{{ route('student.claim-history', ['tab' => 'claimed', 'claim_category' => $claimCategoryIdx]) }}"
          class="report-tab {{ $activeTab === 'claimed' ? 'active' : '' }}">Claimed</a>
     </div>
-    <form method="get" action="{{ route('student.claim-history') }}" class="browse-filter-form">
-      <input type="hidden" name="tab" value="{{ $activeTab }}">
+    <div class="browse-filter-form">
       <div class="browse-filter-filters">
-        <label class="sr-only" for="claimCategorySelect">Category</label>
-        <select name="claim_category" id="claimCategorySelect" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
-          <option value="">Filter By Category</option>
-          @foreach($categories as $idx => $cat)
-            <option value="{{ $idx }}" {{ ($claimCategoryIdx ?? '') === (string) $idx ? 'selected' : '' }}>{{ $cat }}</option>
-          @endforeach
+        <form method="get" action="{{ route('student.claim-history') }}" style="display:contents;">
+          <input type="hidden" name="tab" value="{{ $activeTab }}">
+          <label class="sr-only" for="claimCategorySelect">Category</label>
+          <select name="claim_category" id="claimCategorySelect" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
+            <option value="">Filter By Category</option>
+            @foreach($categories as $idx => $cat)
+              <option value="{{ $idx }}" {{ ($claimCategoryIdx ?? '') === (string) $idx ? 'selected' : '' }}>{{ $cat }}</option>
+            @endforeach
+          </select>
+        </form>
+        <label class="sr-only" for="claimHistoryDateFilter">Filter by date lost</label>
+        <select id="claimHistoryDateFilter" class="found-filter-select browse-filter-select" aria-label="Filter by date lost">
+          <option value="">Filter By Date Lost</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="3months">Last 3 Months</option>
+          <option value="year">This Year</option>
         </select>
       </div>
-    </form>
+    </div>
   </div>
 
   <div class="inventory-card reports-browse-card">
@@ -46,7 +57,7 @@
         </thead>
         <tbody>
           @forelse($tableRows as $row)
-            <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}">
+            <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}" data-date-lost="{{ $row['date_lost'] !== '—' ? $row['date_lost'] : '' }}">
               <td><strong>{{ $row['ticket_id'] }}</strong></td>
               <td>{{ $row['category'] }}</td>
               <td>{{ $row['department'] }}</td>
@@ -112,7 +123,7 @@
               <img id="chidImg" class="chid-img" src="" alt="Item" style="display:none;">
               <div id="chidImgPh" class="chid-img-ph"><i class="fa-solid fa-box-open"></i><span>No photo</span></div>
             </div>
-            <p class="chid-idline" id="chidBarcodeLine">Barcode ID: —</p>
+            <p class="chid-idline" id="chidBarcodeLine">Reference ID: —</p>
             <p class="chid-idline" id="chidTicketLine">Ticket ID: —</p>
             <p class="chid-subhead">Claimant’s Information</p>
             <label class="chid-field-label">Name</label>
@@ -205,7 +216,7 @@
     if (img) { img.style.display = 'none'; img.removeAttribute('src'); }
     if (ph) { ph.style.display = 'flex'; }
 
-    document.getElementById('chidBarcodeLine').textContent = 'Barcode ID: ' + (item.id||'—');
+    document.getElementById('chidBarcodeLine').textContent = 'Reference ID: ' + (item.id||'—');
     document.getElementById('chidTicketLine').textContent = 'Ticket ID: ' + (lost && lost.display_ticket_id ? lost.display_ticket_id : '—');
 
     var nameIn = document.getElementById('chidClaimName');
@@ -269,6 +280,36 @@
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape') window.closeChid();
   });
+})();
+</script>
+<script>
+// ── Date filter (client-side) ───────────────────────────────────────────
+(function(){
+  var sel = document.getElementById('claimHistoryDateFilter');
+  if(!sel) return;
+  function applyDate(){
+    var val = sel.value;
+    var now = new Date();
+    var todayStr  = now.toISOString().slice(0,10);
+    var weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+    var weekStr   = weekStart.toISOString().slice(0,10);
+    var monthStr  = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+    var m3Str     = new Date(now.getFullYear(),now.getMonth()-3,now.getDate()).toISOString().slice(0,10);
+    var yearStr   = new Date(now.getFullYear(),0,1).toISOString().slice(0,10);
+    document.querySelectorAll('.reports-browse-table tbody tr[data-date-lost]').forEach(function(r){
+      if(r.querySelector('td[colspan]')) return;
+      if(!val){ r.style.display=''; return; }
+      var d = r.getAttribute('data-date-lost')||'';
+      var show = true;
+      if(val==='today')   show = d===todayStr;
+      if(val==='week')    show = d>=weekStr && d<=todayStr;
+      if(val==='month')   show = d>=monthStr && d<=todayStr;
+      if(val==='3months') show = d>=m3Str && d<=todayStr;
+      if(val==='year')    show = d>=yearStr && d<=todayStr;
+      r.style.display = show?'':'none';
+    });
+  }
+  sel.addEventListener('change', applyDate);
 })();
 </script>
 @endpush

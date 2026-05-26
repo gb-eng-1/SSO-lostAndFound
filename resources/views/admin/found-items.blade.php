@@ -18,24 +18,6 @@
 .expiry-card-meta{display:flex;align-items:center;gap:9px;color:#555;font-size:13px;}
 .expiry-card-badge{display:inline-block;background:#fff3cd;color:#856404;border:1px solid #ffc107;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;align-self:flex-start;}
 .expiry-card-footer{display:flex;justify-content:flex-end;margin-top:4px;}
-.btn-cancel-item{background:#8b0000;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;transition:opacity .15s;}
-.btn-cancel-item:hover{opacity:.85;}
-.btn-cancel-item:disabled{opacity:.5;cursor:not-allowed;}
-
-/* ── Cancel item confirmation modal ───────────────────────────── */
-.cancel-confirm-overlay{display:none;position:fixed;inset:0;z-index:1600;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px;}
-.cancel-confirm-overlay.open{display:flex;}
-.cancel-confirm-dialog{background:#fff;border-radius:12px;width:min(420px,96vw);box-shadow:0 20px 50px rgba(0,0,0,.2);overflow:hidden;font-family:Poppins,sans-serif;}
-.cancel-confirm-hdr{background:#8b0000;color:#fff;padding:14px 18px;font-size:16px;font-weight:700;margin:0;}
-.cancel-confirm-body{padding:20px 22px 8px;color:#374151;font-size:14px;line-height:1.5;}
-.cancel-confirm-body strong{color:#111827;}
-.cancel-confirm-foot{padding:16px 18px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #e5e7eb;background:#fafafa;}
-.cancel-confirm-btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;}
-.cancel-confirm-btn--secondary{border:1px solid #d1d5db;background:#fff;color:#374151;}
-.cancel-confirm-btn--secondary:hover{background:#f3f4f6;}
-.cancel-confirm-btn--danger{border:none;background:#8b0000;color:#fff;}
-.cancel-confirm-btn--danger:hover{opacity:.92;}
-.cancel-confirm-btn:disabled{opacity:.5;cursor:not-allowed;}
 
 /* ── Guest Item Details Modal ──────────────────────────────────── */
 .guest-modal-overlay{display:none;position:fixed;inset:0;z-index:1500;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
@@ -126,8 +108,6 @@
 .found-action-cell{display:flex;gap:6px;align-items:center;}
 .found-btn-view,.found-btn-view-guest{background:#2563eb!important;color:#fff!important;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
 .found-btn-view:hover,.found-btn-view-guest:hover{background:#1d4ed8!important;opacity:.9;}
-.found-btn-cancel{background:#dc2626!important;color:#fff!important;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-.found-btn-cancel:hover{background:#b91c1c!important;opacity:.9;}
 
 /* Tabs (matched style) */
 .matched-tab-text.matched-tab-active{background-color:#fff !important;border-bottom-color:#8b0000 !important;}
@@ -166,7 +146,7 @@
           <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
         </span>
         <span class="matched-tab-text" id="guestItemsTab">
-          <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
+          <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>All IDs
         </span>
       </div>
       <div id="allItemsActions" class="admin-found-encode-actions">
@@ -183,12 +163,18 @@
     <div id="foundFilterGroup" class="browse-filter-form">
       <div class="browse-filter-filters">
         <label class="sr-only" for="foundCategorySelect">Filter by category</label>
+        {{-- All Items tab filter --}}
         <select name="category" id="foundCategorySelect" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
           <option value="">Filter By Category</option>
           @foreach($categoriesInternal as $c)
-            <option value="{{ $c }}" {{ request('category') === $c ? 'selected' : '' }}>{{ $c }}</option>
+            <option value="{{ $c }}" {{ (!in_array(request('category'), ['ID & Nameplate','Unclaimed IDs']) && request('category') === $c) ? 'selected' : '' }}>{{ $c }}</option>
           @endforeach
-          <option value="ID & Nameplate" {{ request('category') === 'ID & Nameplate' ? 'selected' : '' }}>ID &amp; Nameplate (Guest)</option>
+        </select>
+        {{-- All IDs tab filter --}}
+        <select name="category" id="guestCategorySelect" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by ID subcategory" style="display:none;" disabled>
+          <option value="">Filter By Category</option>
+          <option value="Unclaimed IDs" {{ request('category') === 'Unclaimed IDs' ? 'selected' : '' }}>Unclaimed IDs</option>
+          <option value="ID & Nameplate" {{ request('category') === 'ID & Nameplate' ? 'selected' : '' }}>IDs and Nameplates</option>
         </select>
         <label class="sr-only" for="foundDateFilter">Filter by date</label>
         <select name="date_filter" id="foundDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
@@ -214,7 +200,7 @@
       <table class="found-table">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Category</th>
             <th>Found At</th>
             <th>Date Found</th>
@@ -265,7 +251,6 @@
               <td>
                 <div class="found-action-cell">
                   <button type="button" class="found-btn-view internal-view-btn">View</button>
-                  <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
                 </div>
               </td>
             </tr>
@@ -277,7 +262,7 @@
     </div>
   </div>
 
-  {{-- Guest Items Tab (ID & Nameplate + Document & Identification encodes) --}}
+  {{-- All IDs Tab (ID & Nameplate + Unclaimed IDs) --}}
   <div id="tab-guest" class="inventory-card matched-reports-card" style="display:none;">
     <div class="inventory-title found-title-guest" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Recovered IDs (External)</span>
@@ -287,7 +272,7 @@
       <table class="found-table found-table-guest">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Category</th>
             <th>Encoded By</th>
             <th>Date Surrendered</th>
@@ -300,91 +285,62 @@
         <tbody id="guestTableBody">
           @forelse($guestItems as $item)
             @php
-              $meta       = $item->parseDescription();
-              $foundByWho = $meta['Found By'] ?? '';
-              $timestamp  = $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : ($item->date_encoded ? $item->date_encoded->format('Y-m-d') . ' 00:00:00' : '—');
-              $isDocId    = $item->item_type === 'Document & Identification';
+              $meta        = $item->parseDescription();
+              $foundByWho  = $meta['Found By'] ?? '';
+              $encodedBy   = $meta['Encoded By'] ?? '';
+              $itemName    = $meta['Item Type'] ?? $meta['Item'] ?? '';
+              $descForView = preg_replace('/^Encoded By:\s*.+$/m', '', $item->item_description ?? '');
+              $descForView = trim(preg_replace("/\n{2,}/", "\n", $descForView));
+              $timestamp   = $item->created_at
+                  ? $item->created_at->format('Y-m-d H:i:s')
+                  : ($item->date_encoded ? $item->date_encoded->format('Y-m-d').' 00:00:00' : '—');
+              $isUnclaimed = $item->item_type === 'Unclaimed IDs';
             @endphp
-            @if($isDocId)
-              @php
-                $parsedMeta = $item->parseDescription();
-                $itemName   = $parsedMeta['Item Type'] ?? $parsedMeta['Item'] ?? '';
-                $encodedBy  = $parsedMeta['Encoded By'] ?? '';
-                $descForView  = preg_replace('/^Encoded By:\s*.+$/m', '', $item->item_description ?? '');
-                $descForView  = trim(preg_replace("/\n{2,}/", "\n", $descForView));
-              @endphp
-              <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
-                  data-id="{{ $item->id }}"
-                  data-category="{{ $item->item_type }}"
-                  data-color="{{ $item->color }}"
-                  data-brand="{{ $item->brand }}"
-                  data-found-by="{{ $item->found_by }}"
-                  data-found-at="{{ $item->found_at }}"
-                  data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
-                  data-storage-location="{{ $item->storage_location }}"
-                  data-item-description="{{ $descForView }}"
-                  data-item-name="{{ $itemName }}"
-                  data-encoded-by="{{ $encodedBy }}"
-                  data-status="{{ $item->status }}"
-                  data-item-type="{{ $item->item_type }}"
-                  @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
-                <td><strong>{{ $item->id }}</strong></td>
-                <td>{{ $item->item_type ?? '—' }}</td>
-                <td>{{ $encodedBy !== '' ? $encodedBy : ($item->found_by ?? '—') }}</td>
-                <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
-                <td>
-                  {{ $item->retention_end ?? '—' }}
-                  @if($item->is_overdue)
-                    <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
-                  @elseif($item->expires_in_30_days)
-                    <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
-                  @endif
-                </td>
-                <td>{{ $item->storage_location ?? '—' }}</td>
-                <td>{{ $timestamp }}</td>
-                <td>
-                  <div class="found-action-cell">
+            <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
+                data-id="{{ $item->id }}"
+                data-category="{{ $item->item_type }}"
+                data-color="{{ $item->color }}"
+                data-brand="{{ $item->brand ?? '' }}"
+                data-found-by="{{ $item->found_by ?? '' }}"
+                data-found-at="{{ $item->found_at ?? '' }}"
+                data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
+                data-storage-location="{{ $item->storage_location ?? '' }}"
+                data-item-description="{{ $descForView }}"
+                data-item-name="{{ $itemName }}"
+                data-encoded-by="{{ $encodedBy }}"
+                data-encoded-by-staff="{{ $item->found_by ?? '' }}"
+                data-found-by-line="{{ $foundByWho }}"
+                data-id-type="{{ $meta['ID Type'] ?? '' }}"
+                data-fullname="{{ $meta['Owner'] ?? '' }}"
+                data-status="{{ $item->status }}"
+                data-item-type="{{ $item->item_type }}"
+                @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
+              <td><strong>{{ $item->id }}</strong></td>
+              <td>{{ $item->item_type ?? '—' }}</td>
+              <td>{{ $isUnclaimed ? ($encodedBy ?: ($item->found_by ?? '—')) : ($item->found_by ?? '—') }}</td>
+              <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
+              <td>
+                {{ $item->retention_end ?? '—' }}
+                @if($item->is_overdue)
+                  <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
+                @elseif($item->expires_in_30_days)
+                  <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
+                @endif
+              </td>
+              <td>{{ $item->storage_location ?? '—' }}</td>
+              <td>{{ $timestamp }}</td>
+              <td>
+                <div class="found-action-cell">
+                  @if($isUnclaimed)
                     <button type="button" class="found-btn-view internal-view-btn">View</button>
-                    <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
-                  </div>
-                </td>
-              </tr>
-            @else
-              <tr class="{{ $item->is_overdue ? 'row-overdue' : ($item->expires_in_30_days ? 'row-expiring' : '') }}"
-                  data-id="{{ $item->id }}"
-                  data-color="{{ $item->color }}"
-                  data-encoded-by-staff="{{ $item->found_by }}"
-                  data-found-by-line="{{ $foundByWho }}"
-                  data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}"
-                  data-storage-location="{{ $item->storage_location }}"
-                  data-id-type="{{ $meta['ID Type'] ?? '' }}"
-                  data-fullname="{{ $meta['Owner'] ?? '' }}"
-                  data-item-type="{{ $item->item_type }}"
-                  @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
-                <td><strong>{{ $item->id }}</strong></td>
-                <td>{{ $item->item_type ?? '—' }}</td>
-                <td>{{ $item->found_by ?? '—' }}</td>
-                <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
-                <td>
-                  {{ $item->retention_end ?? '—' }}
-                  @if($item->is_overdue)
-                    <span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRED</span>
-                  @elseif($item->expires_in_30_days)
-                    <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;white-space:nowrap;vertical-align:middle;">EXPIRING</span>
-                  @endif
-                </td>
-                <td>{{ $item->storage_location ?? '—' }}</td>
-                <td>{{ $timestamp }}</td>
-                <td>
-                  <div class="found-action-cell">
+                  @else
                     <button type="button" class="found-btn-view-guest guest-view-btn">View</button>
-                    <button type="button" class="found-btn-cancel cancel-item-btn" data-cancel-id="{{ $item->id }}">Cancel</button>
-                  </div>
-                </td>
-              </tr>
-            @endif
+                  @endif
+                </div>
+              </td>
+            </tr>
           @empty
-            <tr><td colspan="8" class="table-empty">No guest items.</td></tr>
+            <tr><td colspan="8" class="table-empty td-empty">No items found.</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -416,9 +372,6 @@
           <div class="expiry-card-meta"><i class="fa-solid fa-location-dot"></i><span>{{ $ei->found_at ?? $ei->storage_location ?? 'N/A' }}</span></div>
           <div class="expiry-card-meta"><i class="fa-regular fa-calendar"></i><span>Expires: {{ $ei->retention_end }}</span></div>
           <span class="expiry-card-badge">Expiring Soon</span>
-          <div class="expiry-card-footer">
-            <button type="button" class="btn-cancel-item cancel-item-btn" data-cancel-id="{{ $ei->id }}">Cancel</button>
-          </div>
         </div>
       @empty
         <p style="color:#9ca3af;font-size:13px;font-style:italic;">No items approaching expiry within 30 days.</p>
@@ -446,11 +399,11 @@
           </div>
           <img id="viewModalImg" src="" alt="Item photo" style="display:none;width:160px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #e0e0e0;">
         </div>
-        <p id="viewModalBarcode" style="margin-top:10px;font-size:13px;font-weight:600;color:#374151;text-align:center;">Barcode ID: —</p>
+        <p id="viewModalBarcode" style="margin-top:10px;font-size:13px;font-weight:600;color:#374151;text-align:center;">Reference ID: —</p>
       </div>
       <div class="view-modal-right-col">
         <h4 class="view-modal-section-title">General Information</h4>
-        <div id="viewModalBody" class="view-modal-body"></div>
+        <div id="viewModalBody" class="view-modal-body idm-info-card"></div>
         <div style="margin-top:16px;text-align:right;">
           <button type="button" class="view-modal-cancel" onclick="closeViewModal()">Close</button>
         </div>
@@ -476,58 +429,45 @@
           <span>No photo</span>
         </div>
         <img id="guestModalPhoto" class="guest-modal-photo" src="" alt="ID photo" style="display:none;">
-        <p class="guest-modal-barcode-label" id="guestModalBarcodeLabel">Barcode ID: —</p>
+        <p class="guest-modal-barcode-label" id="guestModalBarcodeLabel">Reference ID: —</p>
       </div>
       <div class="guest-modal-right">
         <h4 class="guest-modal-section-title">General Information</h4>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">ID Type:</span>
-          <span class="guest-modal-info-value" id="guestModalIdType">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Fullname:</span>
-          <span class="guest-modal-info-value" id="guestModalFullname">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Color:</span>
-          <span class="guest-modal-info-value" id="guestModalColor">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Storage Location:</span>
-          <span class="guest-modal-info-value" id="guestModalStorageLocation">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Found By:</span>
-          <span class="guest-modal-info-value" id="guestModalFoundBy">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Encoded By:</span>
-          <span class="guest-modal-info-value" id="guestModalEncodedBy">—</span>
-        </div>
-        <div class="guest-modal-info-row">
-          <span class="guest-modal-info-label">Date Surrendered:</span>
-          <span class="guest-modal-info-value" id="guestModalDateSurrendered">—</span>
+        <div class="idm-info-card">
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">ID Type:</span>
+            <span class="guest-modal-info-value" id="guestModalIdType">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Fullname:</span>
+            <span class="guest-modal-info-value" id="guestModalFullname">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Color:</span>
+            <span class="guest-modal-info-value" id="guestModalColor">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Storage Location:</span>
+            <span class="guest-modal-info-value" id="guestModalStorageLocation">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Found By:</span>
+            <span class="guest-modal-info-value" id="guestModalFoundBy">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Encoded By:</span>
+            <span class="guest-modal-info-value" id="guestModalEncodedBy">—</span>
+          </div>
+          <div class="guest-modal-info-row">
+            <span class="guest-modal-info-label">Date Surrendered:</span>
+            <span class="guest-modal-info-value" id="guestModalDateSurrendered">—</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-{{-- ── Confirm cancel item (marks status Cancelled) ───────────────────── --}}
-<div class="cancel-confirm-overlay" id="cancelItemConfirmModal" role="dialog" aria-modal="true" aria-hidden="true"
-     onclick="if(event.target===this)closeCancelItemConfirmModal()">
-  <div class="cancel-confirm-dialog" onclick="event.stopPropagation()" role="document">
-    <h3 class="cancel-confirm-hdr">Cancel item</h3>
-    <div class="cancel-confirm-body">
-      <p style="margin:0 0 10px;">Cancel listing for barcode <strong id="cancelItemConfirmId">—</strong>?</p>
-      <p style="margin:0;font-size:13px;color:#6b7280;">This removes the item from active lists by setting its status to <strong>Cancelled</strong>.</p>
-    </div>
-    <div class="cancel-confirm-foot">
-      <button type="button" class="cancel-confirm-btn cancel-confirm-btn--secondary" id="cancelItemConfirmBack">Go back</button>
-      <button type="button" class="cancel-confirm-btn cancel-confirm-btn--danger" id="cancelItemConfirmSubmit">Confirm cancel</button>
-    </div>
-  </div>
-</div>
 
 @include('admin.partials.internal-encode-item-modal', ['campusLocations' => $campusLocations])
 
@@ -543,16 +483,32 @@
     </div>
     <form id="encodeGuestForm" class="report-modal-body">
       <div class="report-form-row">
-        <label class="report-form-label" for="guestBarcodeId">Barcode ID:</label>
+        <label class="report-form-label" for="guestSubcategory">Subcategory: <span class="report-required">*</span></label>
         <div class="report-form-field">
-          <input type="text" id="guestBarcodeId" name="barcode_id" class="report-input" placeholder="Required — e.g. UB1005" required autocomplete="off">
+          <select id="guestSubcategory" name="guest_subcategory" class="report-input report-select" required>
+            <option value="ID & Nameplate">IDs and Nameplates</option>
+            <option value="Unclaimed IDs">Unclaimed IDs</option>
+          </select>
         </div>
       </div>
       <div class="report-form-row">
-        <label class="report-form-label" for="guestIdType">ID Type:</label>
+        <label class="report-form-label">Reference ID: <span class="report-required">*</span></label>
+        <div class="report-form-field" style="gap:6px;">
+          <select id="guestIdPrefix" class="report-input report-select" style="flex:0 0 85px;min-width:85px;" required>
+            <option value="UBBC">UBBC</option>
+            <option value="UBLC">UBLC</option>
+          </select>
+          <span style="font-weight:700;color:#6b7280;align-self:center;">-</span>
+          <input type="text" id="guestIdSy" class="report-input" style="flex:0 0 68px;min-width:68px;" placeholder="2526" maxlength="4" autocomplete="off">
+          <span style="font-weight:700;color:#6b7280;align-self:center;">-</span>
+          <input type="text" id="guestIdSeq" class="report-input" style="flex:1;min-width:60px;" placeholder="0001" autocomplete="off">
+        </div>
+      </div>
+      <div class="report-form-row">
+        <label class="report-form-label" for="guestIdType">ID Type: <span class="report-required">*</span></label>
         <div class="report-form-field">
-          <select id="guestIdType" name="id_type" class="report-input report-select">
-            <option value="">— Select ID Type —</option>
+          <select id="guestIdType" name="id_type" class="report-input report-select" required>
+            <option value="" disabled selected hidden>— Select ID Type —</option>
             @foreach(['Student ID','Faculty ID','Staff ID','Employee ID','Visitor ID','Driver\'s License','Passport','SSS ID','GSIS ID','PhilHealth ID','Pag-IBIG ID','Postal ID','Voter\'s ID','Senior Citizen ID','PWD ID','National ID (PhilSys)','Other'] as $idType)
               <option>{{ $idType }}</option>
             @endforeach
@@ -569,23 +525,29 @@
         <label class="report-form-label" for="guestColor">Color: <span class="report-required">*</span></label>
         <div class="report-form-field">
           <select id="guestColor" name="color" class="report-input report-select" required>
-            <option value="">— Select —</option>
+            <option value="" disabled selected hidden>— Select —</option>
             @foreach(['Red','Orange','Yellow','Green','Blue','Violet','Black','White','Brown','Rainbow','Multi','Other'] as $c)
               <option>{{ $c }}</option>
             @endforeach
           </select>
         </div>
       </div>
-      <div class="report-form-row">
+      <div class="report-form-row" id="guestStorageRow">
         <label class="report-form-label" for="guestStorage">Storage Location:</label>
         <div class="report-form-field">
           <input type="text" id="guestStorage" name="storage_location" class="report-input" placeholder="e.g. Shelf A-1">
         </div>
       </div>
-      <div class="report-form-row">
+      <div class="report-form-row" id="guestFoundByRow">
         <label class="report-form-label" for="guestFoundBy">Found By:</label>
         <div class="report-form-field">
           <input type="text" id="guestFoundBy" name="found_by" class="report-input" placeholder="e.g. juan.delacruz@ub.edu.ph or Juan Dela Cruz">
+        </div>
+      </div>
+      <div class="report-form-row" id="guestContactRow" style="display:none;">
+        <label class="report-form-label" for="guestContactNumber">Contact Number:</label>
+        <div class="report-form-field">
+          <input type="text" id="guestContactNumber" name="contact_number" class="report-input" placeholder="09*********">
         </div>
       </div>
       <div class="report-form-row">
@@ -594,7 +556,7 @@
           <input type="text" id="guestEncodedBy" name="encoded_by" class="report-input" placeholder="e.g. J. Dela Cruz">
         </div>
       </div>
-      <div class="report-form-row">
+      <div class="report-form-row" id="guestDateSurrRow">
         <label class="report-form-label" for="guestDateSurrendered">Date Surrendered:</label>
         <div class="report-form-field">
           <input type="date" id="guestDateSurrendered" name="date_surrendered" class="report-input" max="{{ date('Y-m-d') }}">
@@ -641,7 +603,7 @@
     <div class="success-modal-icon"><i class="fa-solid fa-check"></i></div>
     <h3 class="success-modal-title">Success</h3>
     <p class="success-modal-message">Item encoded successfully!</p>
-    <p class="success-modal-barcode">Barcode ID: <strong id="encodeSuccessBarcodeText"></strong></p>
+    <p class="success-modal-barcode">Reference ID: <strong id="encodeSuccessBarcodeText"></strong></p>
     <div class="success-modal-footer">
       <button type="button" class="report-btn-confirm" onclick="closeEncodeSuccessModal()">OK</button>
     </div>
@@ -660,6 +622,11 @@ var _encGuestPP = null;
 
 function _appAlert(msg){ if(typeof window.appUiAlert === 'function') window.appUiAlert(msg); else alert(msg); }
 
+function composeReportId(prefix, sy, seq) {
+  var s = String(seq || '').replace(/^0+/, '') || '0';
+  return prefix + '-' + sy + '-' + (s.length < 4 ? s.padStart(4, '0') : s);
+}
+
 function _escRev(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -672,8 +639,12 @@ function buildEncodeItemReviewHtml(){
   if(typeof _encItemPhoto !== 'undefined' && _encItemPhoto){
     img = '<div class="report-form-row"><span class="report-form-label">Photo</span><span><img src="'+_escRev(_encItemPhoto)+'" alt="" style="max-width:200px;border-radius:8px;border:1px solid #e5e7eb;"></span></div>';
   }
+  var _prefix = (document.getElementById('encIdPrefix')||{}).value || 'UBBC';
+  var _sy = ((document.getElementById('encIdSy')||{}).value||'').trim();
+  var _seq = ((document.getElementById('encIdSeq')||{}).value||'').trim();
+  var _composedId = (_sy && _seq) ? composeReportId(_prefix, _sy, _seq) : '—';
   return [
-    _rowRev('Barcode ID', (document.getElementById('encBarcodeId')||{}).value),
+    _rowRev('Reference ID', _composedId),
     _rowRev('Category', (document.getElementById('encCategory')||{}).value),
     _rowRev('Item', (document.getElementById('encItem')||{}).value),
     _rowRev('Color', (document.getElementById('encColor')||{}).value),
@@ -692,15 +663,23 @@ function buildGuestReviewHtml(){
   if(typeof _encGuestPhoto !== 'undefined' && _encGuestPhoto){
     img = '<div class="report-form-row"><span class="report-form-label">Photo</span><span><img src="'+_escRev(_encGuestPhoto)+'" alt="" style="max-width:200px;border-radius:8px;border:1px solid #e5e7eb;"></span></div>';
   }
+  var _gPrefix = (document.getElementById('guestIdPrefix')||{}).value || 'UBBC';
+  var _gSy = ((document.getElementById('guestIdSy')||{}).value||'').trim();
+  var _gSeq = ((document.getElementById('guestIdSeq')||{}).value||'').trim();
+  var _gComposedId = (_gSy && _gSeq) ? composeReportId(_gPrefix, _gSy, _gSeq) : '—';
+  var _gSubcat = (document.getElementById('guestSubcategory')||{}).value || 'ID & Nameplate';
+  var _gIsUnclaimed = _gSubcat === 'Unclaimed IDs';
   return [
-    _rowRev('Barcode ID', (document.getElementById('guestBarcodeId')||{}).value),
+    _rowRev('Subcategory', _gSubcat),
+    _rowRev('Reference ID', _gComposedId),
     _rowRev('ID Type', (document.getElementById('guestIdType')||{}).value),
     _rowRev('Fullname', (document.getElementById('guestFullname')||{}).value),
     _rowRev('Color', (document.getElementById('guestColor')||{}).value),
-    _rowRev('Storage Location', (document.getElementById('guestStorage')||{}).value),
-    _rowRev('Found By', (document.getElementById('guestFoundBy')||{}).value),
+    _gIsUnclaimed ? _rowRev('Contact Number', (document.getElementById('guestContactNumber')||{}).value) : '',
+    _gIsUnclaimed ? '' : _rowRev('Storage Location', (document.getElementById('guestStorage')||{}).value),
+    _gIsUnclaimed ? '' : _rowRev('Found By', (document.getElementById('guestFoundBy')||{}).value),
+    _gIsUnclaimed ? '' : _rowRev('Date Surrendered', (document.getElementById('guestDateSurrendered')||{}).value),
     _rowRev('Encoded By', (document.getElementById('guestEncodedBy')||{}).value),
-    _rowRev('Date Surrendered', (document.getElementById('guestDateSurrendered')||{}).value),
     img
   ].join('');
 }
@@ -739,28 +718,6 @@ function _laravelErrMsg(res){
   return 'Request failed (' + res.status + ').';
 }
 
-function openBarcodeDupModal(msg){
-  var m = document.getElementById('barcodeDupModal');
-  var t = document.getElementById('barcodeDupModalText');
-  if(t) t.textContent = msg || '';
-  if(m){
-    m.classList.add('open');
-    m.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-}
-function closeBarcodeDupModal(){
-  var m = document.getElementById('barcodeDupModal');
-  if(m){
-    m.classList.remove('open');
-    m.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-  }
-}
-(function(){
-  var ok = document.getElementById('barcodeDupModalOk');
-  if(ok) ok.addEventListener('click', closeBarcodeDupModal);
-})();
 
 function fetchBarcodeContext(barcode){
   return fetch(BARCODE_CTX_URL + '?barcode=' + encodeURIComponent(barcode), {
@@ -776,23 +733,32 @@ function fetchBarcodeContext(barcode){
   var gstSec = document.getElementById('tab-guest');
   var allAct = document.getElementById('allItemsActions');
   var gstAct = document.getElementById('guestActionsBar');
-  var catSel = document.getElementById('foundCategorySelect');
+  var catSel    = document.getElementById('foundCategorySelect');
+  var gstCatSel = document.getElementById('guestCategorySelect');
   if(!allTab||!gstTab) return;
   function showAll(){
     allTab.classList.add('matched-tab-active'); gstTab.classList.remove('matched-tab-active');
     allSec.style.display=''; gstSec.style.display='none';
     if(allAct) allAct.style.display=''; if(gstAct) gstAct.style.display='none';
     if(catSel){ catSel.disabled=false; catSel.style.display=''; }
+    if(gstCatSel){ gstCatSel.disabled=true; gstCatSel.style.display='none'; }
   }
   function showGuest(){
     gstTab.classList.add('matched-tab-active'); allTab.classList.remove('matched-tab-active');
     gstSec.style.display=''; allSec.style.display='none';
     if(allAct) allAct.style.display='none'; if(gstAct) gstAct.style.display='';
-    if(catSel){ catSel.disabled=false; catSel.style.display=''; }
+    if(catSel){ catSel.disabled=true; catSel.style.display='none'; }
+    if(gstCatSel){ gstCatSel.disabled=false; gstCatSel.style.display=''; }
   }
   allTab.addEventListener('click', showAll);
   gstTab.addEventListener('click', showGuest);
-  if(window.location.hash==='#guest') showGuest();
+  var _guestCats = ['ID & Nameplate', 'Unclaimed IDs'];
+  var _reqCat = @json(request('category') ?? '');
+  if(window.location.hash === '#guest' || _guestCats.indexOf(_reqCat) !== -1){
+    showGuest();
+  } else {
+    showAll();
+  }
 })();
 
 // ── Found At / Found In (encode internal) ───────────────────────────────────
@@ -833,12 +799,16 @@ function closeEncodeModal(){
     var item = document.getElementById('encItem').value.trim();
     var col  = document.getElementById('encColor').value;
     var desc = document.getElementById('encDescription').value.trim();
+    var _pPrefix = (document.getElementById('encIdPrefix')||{}).value || 'UBBC';
+    var _pSy = ((document.getElementById('encIdSy')||{}).value||'').trim();
+    var _pSeq = ((document.getElementById('encIdSeq')||{}).value||'').trim();
+    var _composedBarcode = composeReportId(_pPrefix, _pSy, _pSeq);
     btn.disabled = true; btn.textContent = 'Saving…';
     return fetch('{{ url("/admin/found-items") }}', {
       method: 'POST',
       headers: _foundJsonHeaders(),
       body: JSON.stringify({
-        barcode_id:       document.getElementById('encBarcodeId').value.trim(),
+        barcode_id:       _composedBarcode,
         category:         document.getElementById('encCategory').value || '',
         item:             document.getElementById('encItem').value || '',
         color:            col,
@@ -866,11 +836,15 @@ function closeEncodeModal(){
     });
   }
   sub.addEventListener('click', function(){
-  var barcode = document.getElementById('encBarcodeId').value.trim();
+  var idPrefix = (document.getElementById('encIdPrefix')||{}).value || 'UBBC';
+  var idSy = ((document.getElementById('encIdSy')||{}).value||'').trim();
+  var idSeq = ((document.getElementById('encIdSeq')||{}).value||'').trim();
+  if(!/^\d{4}$/.test(idSy)){ _appAlert('School year must be exactly 4 digits (e.g. 2526).'); document.getElementById('encIdSy').focus(); return; }
+  if(!idSeq || !/^\d+$/.test(idSeq)){ _appAlert('Sequence number is required and must be numeric.'); document.getElementById('encIdSeq').focus(); return; }
+  var barcode = composeReportId(idPrefix, idSy, idSeq);
   var item = document.getElementById('encItem').value.trim();
   var col  = document.getElementById('encColor').value;
   var desc = document.getElementById('encDescription').value.trim();
-  if(!barcode){ _appAlert('Barcode ID is required.'); document.getElementById('encBarcodeId').focus(); return; }
   if(!item){ document.getElementById('encItem').focus(); return; }
   if(!col){ document.getElementById('encColor').focus(); return; }
   if(!desc){ document.getElementById('encDescription').focus(); return; }
@@ -886,9 +860,9 @@ function closeEncodeModal(){
       btn.disabled = false; btn.textContent = 'Next';
       var n = ctx.linked_report_count || 0;
       var msg = n >= 1
-        ? 'This barcode is already registered. It has '+n+' linked lost report(s). You cannot register a duplicate found item with the same ID.'
-        : 'This barcode is already in use. You cannot register a duplicate found item.';
-      openBarcodeDupModal(msg);
+        ? 'This Reference ID is already registered. It has '+n+' linked lost report(s). You cannot register a duplicate found item with the same ID.'
+        : 'This Reference ID is already in use. You cannot register a duplicate found item.';
+      _appAlert(msg);
       return;
     }
     document.getElementById('adminEncodeReviewTitle').textContent = 'Item Recovered Report';
@@ -913,10 +887,20 @@ function closeEncodeModal(){
 })();
 
 // ── Encode Guest ID modal ─────────────────────────────────────────────────
+function _applyGuestSubcategory(val) {
+  var isUnclaimed = val === 'Unclaimed IDs';
+  ['guestDateSurrRow','guestFoundByRow','guestStorageRow'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = isUnclaimed ? 'none' : '';
+  });
+  var cr = document.getElementById('guestContactRow');
+  if(cr) cr.style.display = isUnclaimed ? '' : 'none';
+}
 function openGuestModal(){
   document.getElementById('encodeGuestForm').reset();
   if(_encGuestPP) _encGuestPP.clear();
   _encGuestPhoto = null;
+  _applyGuestSubcategory(document.getElementById('guestSubcategory').value);
   document.getElementById('encodeIdModal').classList.add('report-modal-open');
 }
 function closeGuestEncodeModal(){
@@ -925,23 +909,28 @@ function closeGuestEncodeModal(){
 (function(){
   var b = document.getElementById('encodeGuestItemBtn');
   if(b) b.addEventListener('click', openGuestModal);
+  var sel = document.getElementById('guestSubcategory');
+  if(sel) sel.addEventListener('change', function(){ _applyGuestSubcategory(this.value); });
 })();
 
 (function(){
   var sub = document.getElementById('guestEncodeSubmitBtn');
   if(!sub) return;
-  function postGuestEncode(btn, fn, col){
+  function postGuestEncode(btn, fn, col, composedBarcode){
     btn.disabled = true; btn.textContent = 'Saving…';
+    var subcat = document.getElementById('guestSubcategory').value || 'ID & Nameplate';
     return fetch('{{ route("admin.found.guest") }}', {
       method: 'POST',
       headers: _foundJsonHeaders(),
       body: JSON.stringify({
-        barcode_id:       document.getElementById('guestBarcodeId').value.trim(),
+        barcode_id:       composedBarcode,
+        item_type:        subcat,
         id_type:          document.getElementById('guestIdType').value || '',
         fullname:         fn,
         color:            col,
         storage_location: document.getElementById('guestStorage').value || '',
         found_by:         document.getElementById('guestFoundBy').value || '',
+        contact_number:   document.getElementById('guestContactNumber').value || '',
         encoded_by:       document.getElementById('guestEncodedBy').value || '',
         date_surrendered: document.getElementById('guestDateSurrendered').value || '',
         imageDataUrl:     _encGuestPhoto || null
@@ -961,30 +950,36 @@ function closeGuestEncodeModal(){
     });
   }
   sub.addEventListener('click', function(){
-  var barcode = document.getElementById('guestBarcodeId').value.trim();
+  var gPrefix = (document.getElementById('guestIdPrefix')||{}).value || 'UBBC';
+  var gSy = ((document.getElementById('guestIdSy')||{}).value||'').trim();
+  var gSeq = ((document.getElementById('guestIdSeq')||{}).value||'').trim();
   var fn  = document.getElementById('guestFullname').value.trim();
   var col = document.getElementById('guestColor').value;
-  if(!barcode){ _appAlert('Barcode ID is required.'); document.getElementById('guestBarcodeId').focus(); return; }
+  if(!/^\d{4}$/.test(gSy)){ _appAlert('School year must be exactly 4 digits (e.g. 2526).'); document.getElementById('guestIdSy').focus(); return; }
+  if(!gSeq || !/^\d+$/.test(gSeq)){ _appAlert('Sequence number is required and must be numeric.'); document.getElementById('guestIdSeq').focus(); return; }
+  var barcode = composeReportId(gPrefix, gSy, gSeq);
   if(!fn){ document.getElementById('guestFullname').focus(); return; }
+  var idType = document.getElementById('guestIdType').value;
+  if(!idType){ _appAlert('Please select an ID Type.'); document.getElementById('guestIdType').focus(); return; }
   if(!col){ document.getElementById('guestColor').focus(); return; }
 
   var btn = this;
   btn.disabled = true; btn.textContent = 'Checking…';
   fetchBarcodeContext(barcode).then(function(ctx){
-    if(!ctx.ok){ throw new Error(ctx.error || 'Could not verify barcode.'); }
+    if(!ctx.ok){ throw new Error(ctx.error || 'Could not verify Reference ID.'); }
     if(ctx.exists){
       btn.disabled = false; btn.textContent = 'Next';
       var n = ctx.linked_report_count || 0;
       var msg = n >= 1
-        ? 'This barcode is already registered. It has '+n+' linked lost report(s). You cannot register a duplicate found item with the same ID.'
-        : 'This barcode is already in use. You cannot register a duplicate found item.';
-      openBarcodeDupModal(msg);
+        ? 'This Reference ID is already registered. It has '+n+' linked lost report(s). You cannot register a duplicate found item with the same ID.'
+        : 'This Reference ID is already in use. You cannot register a duplicate found item.';
+      _appAlert(msg);
       return;
     }
     document.getElementById('adminEncodeReviewTitle').textContent = 'Lost ID Report';
     document.getElementById('adminEncodeReviewSummary').innerHTML = buildGuestReviewHtml();
     window._adminEncodeReview = {
-      runSubmit: function(){ return postGuestEncode(btn, fn, col); },
+      runSubmit: function(){ return postGuestEncode(btn, fn, col, barcode); },
       onBack: function(){
         document.getElementById('encodeIdModal').classList.add('report-modal-open');
         document.body.style.overflow = 'hidden';
@@ -1013,7 +1008,7 @@ function openViewModal(row){
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function row_(label,val){ if(!val||val==='—') return ''; return '<div class="vm-row"><span class="vm-label">'+esc(label)+'</span><span class="vm-val">'+esc(val)+'</span></div>'; }
 
-  document.getElementById('viewModalBarcode').textContent = 'Barcode ID: ' + v('data-id');
+  document.getElementById('viewModalBarcode').textContent = 'Reference ID: ' + v('data-id');
   document.getElementById('viewModalBody').innerHTML = [
     row_('Category:', v('data-category')),
     row_('Item:', v('data-item-name')),
@@ -1061,7 +1056,7 @@ function openGuestViewModal(row){
   var ph  = document.getElementById('guestModalPhotoPlaceholder');
   if(imgUrl){ img.src=imgUrl; img.style.display='block'; if(ph) ph.style.display='none'; }
   else { img.style.display='none'; if(ph) ph.style.display='flex'; }
-  document.getElementById('guestModalBarcodeLabel').textContent = 'Barcode ID: ' + v('data-id');
+  document.getElementById('guestModalBarcodeLabel').textContent = 'Reference ID: ' + v('data-id');
   document.getElementById('guestModalIdType').textContent       = v('data-id-type');
   document.getElementById('guestModalFullname').textContent     = v('data-fullname');
   document.getElementById('guestModalColor').textContent        = v('data-color');
@@ -1084,90 +1079,6 @@ document.addEventListener('click', function(e){
   }
 });
 
-// ── Cancel item (confirm modal) ───────────────────────────────────────────
-var _cancelItemPendingBtn = null;
-function openCancelItemConfirmModal(id, triggerBtn){
-  var modal = document.getElementById('cancelItemConfirmModal');
-  var idEl = document.getElementById('cancelItemConfirmId');
-  if(!modal || !idEl) return;
-  _cancelItemPendingBtn = triggerBtn || null;
-  idEl.textContent = id;
-  modal.setAttribute('aria-hidden','false');
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  var confirmBtn = document.getElementById('cancelItemConfirmSubmit');
-  if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm cancel'; }
-}
-function closeCancelItemConfirmModal(){
-  var modal = document.getElementById('cancelItemConfirmModal');
-  if(!modal) return;
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden','true');
-  document.body.style.overflow = '';
-  _cancelItemPendingBtn = null;
-}
-(function(){
-  var backBtn = document.getElementById('cancelItemConfirmBack');
-  var submitBtn = document.getElementById('cancelItemConfirmSubmit');
-  if(backBtn) backBtn.addEventListener('click', closeCancelItemConfirmModal);
-  if(!submitBtn) return;
-  submitBtn.addEventListener('click', function(){
-  var btn = this;
-  var trigger = _cancelItemPendingBtn;
-  var idEl = document.getElementById('cancelItemConfirmId');
-  var id = idEl ? idEl.textContent.trim() : '';
-  if(!id) return;
-  btn.disabled = true;
-  btn.textContent = 'Cancelling…';
-  var cancelUrl = '{{ url("/admin/found-items") }}/' + encodeURIComponent(id) + '/cancel';
-  fetch(cancelUrl, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'X-CSRF-TOKEN': _CSRF,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify({})
-  }).then(function(r){
-    return r.json().then(function(data){
-      if(!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
-      return data;
-    });
-  }).then(function(data){
-    if(data.ok){
-      closeCancelItemConfirmModal();
-      if(trigger){
-        var row = trigger.closest('tr');
-        var card = trigger.closest('.expiry-card');
-        if(row) row.remove();
-        if(card) card.remove();
-      }
-    } else {
-      _appAlert(data.error || 'Could not cancel item.');
-      btn.disabled = false;
-      btn.textContent = 'Confirm cancel';
-    }
-  }).catch(function(err){
-    _appAlert((err && err.message) ? err.message : 'Network error.');
-    btn.disabled = false;
-    btn.textContent = 'Confirm cancel';
-  });
-});
-})();
-
-document.addEventListener('click', function(e){
-  var btn = e.target.closest('.cancel-item-btn');
-  if(!btn) return;
-  var id = btn.getAttribute('data-cancel-id');
-  if(!id) return;
-  e.preventDefault();
-  openCancelItemConfirmModal(id, btn);
-});
-document.addEventListener('keydown', function(e){
-  if(e.key==='Escape') closeCancelItemConfirmModal();
-});
 
 // ── Expiry popup ───────────────────────────────────────────────────────────
 (function(){
@@ -1187,7 +1098,7 @@ function showEncodeSuccess(id){
     if(id && String(id).indexOf('REF-') === 0){
       td = window.appUiFormatTicketDisplay ? window.appUiFormatTicketDisplay(id) : id;
     } else if(id){
-      td = 'Barcode ID: ' + id;
+      td = 'Reference ID: ' + id;
     }
     window.appUiSuccess({
       title: 'Success',

@@ -121,7 +121,7 @@
           } else {
             leftCol += '<div class="item-details-image-wrap item-details-image-placeholder"><i class="fa-regular fa-image"></i><span>No photo</span></div>';
           }
-          leftCol += '<p class="item-details-barcode-id">'+esc(tid)+'</p></div>';
+          leftCol += '<p class="item-details-barcode-id">Ticket ID: '+esc(tid)+'</p></div>';
 
           var dl = '<dl class="item-details-info-list">'
             + infoRow('Category', d.item_type)
@@ -142,7 +142,7 @@
             + '<h4 class="item-details-info-title">General Information</h4>'
             + '<hr class="item-details-divider" />'
             + '</div>'
-            + dl
+            + '<div class="idm-info-card">' + dl + '</div>'
             + '</div>';
 
           if (body) body.innerHTML = leftCol + rightCol;
@@ -156,7 +156,7 @@
           } else {
             leftFound += '<div class="item-details-image-wrap item-details-image-placeholder"><i class="fa-regular fa-image"></i><span>No photo</span></div>';
           }
-          leftFound += '<p class="item-details-barcode-id">Barcode ID: '+esc(bid)+'</p></div>';
+          leftFound += '<p class="item-details-barcode-id">Reference ID: '+esc(bid)+'</p></div>';
 
           var pf = d.parsed || {};
           var itemDesc = (pf.clean_description != null && pf.clean_description !== '') ? pf.clean_description : (d.item_description || '');
@@ -179,7 +179,7 @@
             + '<h4 class="item-details-info-title">General Information</h4>'
             + '<hr class="item-details-divider" />'
             + '</div>'
-            + dlFound
+            + '<div class="idm-info-card">' + dlFound + '</div>'
             + '</div>';
 
           if (body) body.innerHTML = leftFound + rightFound;

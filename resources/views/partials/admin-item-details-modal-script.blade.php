@@ -65,7 +65,7 @@
         } else {
             left += '<div class="item-details-image-wrap item-details-image-placeholder"><i class="fa-regular fa-image"></i><span>No photo</span></div>';
         }
-        left += '<p class="item-details-barcode-id">' + esc(tid) + '</p></div>';
+        left += '<p class="item-details-barcode-id">Ticket ID: ' + esc(tid) + '</p></div>';
 
         var dl = '<dl class="item-details-info-list">'
             + infoRow('Category', item.item_type)
@@ -84,7 +84,7 @@
         }
         dl += '</dl>';
 
-        var right = '<div class="item-details-right">' + sectionHead() + dl + '</div>';
+        var right = '<div class="item-details-right">' + sectionHead() + '<div class="idm-info-card">' + dl + '</div></div>';
         return '<div class="item-details-body">' + left + right + '</div>';
     }
 
@@ -98,7 +98,7 @@
         } else {
             left += '<div class="item-details-image-wrap item-details-image-placeholder"><i class="fa-regular fa-image"></i><span>No photo</span></div>';
         }
-        left += '<p class="item-details-barcode-id">Barcode ID: ' + esc(bid) + '</p>';
+        left += '<p class="item-details-barcode-id">Reference ID: ' + esc(bid) + '</p>';
         if (isExternal) {
             left += '<p class="admin-item-preset-tag" style="margin-top:4px;">External ID (guest)</p>';
         }
@@ -121,7 +121,7 @@
         }
         dl += infoRow('Status', item.status) + '</dl>';
 
-        var right = '<div class="item-details-right">' + sectionHead() + dl + '</div>';
+        var right = '<div class="item-details-right">' + sectionHead() + '<div class="idm-info-card">' + dl + '</div></div>';
         return '<div class="item-details-body">' + left + right + '</div>';
     }
 

@@ -29,21 +29,32 @@
           <i class="fa-solid fa-file-lines"></i> Encode Report
         </button>
       </div>
-      <form method="GET" action="{{ route('admin.reports') }}" class="browse-filter-form">
-        <div class="browse-filter-filters">
-          <label class="sr-only" for="adminReportsCategory">Filter by category</label>
-          <select name="category" id="adminReportsCategory" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
-            <option value="">Filter By Category</option>
-            @foreach($categories as $cat)
-              <option value="{{ $cat }}" {{ $categoryFilter === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-            @endforeach
+      <div class="browse-filter-form">
+        <div class="browse-filter-filters" style="flex-wrap:wrap;">
+          <form method="GET" action="{{ route('admin.reports') }}" style="display:contents;">
+            <label class="sr-only" for="adminReportsCategory">Filter by category</label>
+            <select name="category" id="adminReportsCategory" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
+              <option value="">Filter By Category</option>
+              @foreach($categories as $cat)
+                <option value="{{ $cat }}" {{ $categoryFilter === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+              @endforeach
+            </select>
+            @if($search)
+              <input type="hidden" name="search" value="{{ $search }}">
+            @endif
+            <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
+          </form>
+          <label class="sr-only" for="adminReportsDateFilter">Filter by date lost</label>
+          <select id="adminReportsDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date lost">
+            <option value="">Filter By Date Lost</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="year">This Year</option>
           </select>
-          <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
         </div>
-        @if($search)
-          <input type="hidden" name="search" value="{{ $search }}">
-        @endif
-      </form>
+      </div>
     </div>
 
     {{-- Unresolved Claimants table --}}
@@ -58,8 +69,6 @@
             <tr>
               <th>Ticket ID</th>
               <th>Category</th>
-              <th>Department</th>
-              <th>ID</th>
               <th>Contact Number</th>
               <th>Date Lost</th>
               <th>Action</th>
@@ -67,11 +76,9 @@
           </thead>
           <tbody>
             @forelse($reports as $report)
-              <tr data-report-id="{{ $report->id }}">
+              <tr data-report-id="{{ $report->id }}" data-date-lost="{{ $report->date_lost ? $report->date_lost->format('Y-m-d') : '' }}">
                 <td>{{ $report->display_ticket_id }}</td>
                 <td>{{ $report->item_type ?? '—' }}</td>
-                <td>{{ $report->parsed_department ?? '—' }}</td>
-                <td>{{ $report->parsed_student_number ?? '—' }}</td>
                 <td>{{ $report->parsed_contact ?? '—' }}</td>
                 <td>{{ $report->date_lost ? $report->date_lost->format('Y-m-d') : '—' }}</td>
                 <td class="reports-action-cell">
@@ -79,7 +86,7 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="7" class="table-empty">No unresolved claimants.</td></tr>
+              <tr><td colspan="5" class="table-empty">No unresolved claimants.</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -148,7 +155,7 @@
       </div>
       <div class="reports-modal-right">
         <h4 class="reports-modal-section-title">General Information</h4>
-        <div id="reportsModalBody" class="reports-modal-body"></div>
+        <div id="reportsModalBody" class="reports-modal-body idm-info-card"></div>
       </div>
     </div>
   </div>
@@ -206,7 +213,12 @@
         }
         ticketEl.textContent = displayId;
 
-        var html = row('Category', item.item_type)
+        var actorType = item.actor_type || 'admin';
+        var badgeHtml = actorType === 'student'
+          ? '<div style="display:inline-block;margin-bottom:10px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;border:1px solid #86efac;">Student Submitted</div>'
+          : '<div style="display:inline-block;margin-bottom:10px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;">Walk-in / Admin Encoded</div>';
+        var html = badgeHtml
+          + row('Category', item.item_type)
           + row('Full Name', parsed.full_name)
           + row('Contact Number', parsed.contact)
           + row('Department', parsed.department)
@@ -266,6 +278,36 @@
 })();
 </script>
 <script>
+// ── Date filter (client-side, current page only) ──────────────────────────
+(function(){
+  var sel = document.getElementById('adminReportsDateFilter');
+  if(!sel) return;
+  function applyDate(){
+    var val = sel.value;
+    var now = new Date();
+    var todayStr  = now.toISOString().slice(0,10);
+    var weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+    var weekStr   = weekStart.toISOString().slice(0,10);
+    var monthStr  = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+    var m3Str     = new Date(now.getFullYear(),now.getMonth()-3,now.getDate()).toISOString().slice(0,10);
+    var yearStr   = new Date(now.getFullYear(),0,1).toISOString().slice(0,10);
+    document.querySelectorAll('.reports-table tbody tr[data-date-lost]').forEach(function(r){
+      if(r.querySelector('td[colspan]')) return;
+      if(!val){ r.style.display=''; return; }
+      var d = r.getAttribute('data-date-lost')||'';
+      var show = true;
+      if(val==='today')   show = d===todayStr;
+      if(val==='week')    show = d>=weekStr && d<=todayStr;
+      if(val==='month')   show = d>=monthStr && d<=todayStr;
+      if(val==='3months') show = d>=m3Str && d<=todayStr;
+      if(val==='year')    show = d>=yearStr && d<=todayStr;
+      r.style.display = show?'':'none';
+    });
+  }
+  sel.addEventListener('change', applyDate);
+})();
+</script>
+<script>
 (function() {
   var m = document.querySelector('meta[name="csrf-token"]');
   window._CSRF = m ? m.getAttribute('content') : '';
@@ -294,7 +336,7 @@ function buildEncodeReportReviewHtml() {
     _reportsRowRev('Student Email', (document.getElementById('repStudentEmail') || {}).value),
     _reportsRowRev('Category', cat),
   ];
-  if (cat === 'Document & Identification') {
+  if (cat === 'Unclaimed IDs' || cat === 'IDs & Other Identification') {
     rows.push(_reportsRowRev('Document Type', (document.getElementById('repDocType') || {}).value));
   }
   rows.push(
@@ -347,7 +389,7 @@ function closeEncodeReportModal() {
   if (!repCat) return;
   function syncRepDocRow() {
     var row = document.getElementById('repDocTypeRow');
-    if (row) row.style.display = repCat.value === 'Document & Identification' ? 'grid' : 'none';
+    if (row) row.style.display = (repCat.value === 'Unclaimed IDs' || repCat.value === 'IDs & Other Identification') ? 'grid' : 'none';
     var elecHint = document.getElementById('repElecHint');
     if (elecHint) elecHint.style.display = repCat.value === 'Electronics & Gadgets' ? '' : 'none';
   }
@@ -364,7 +406,7 @@ function closeEncodeReportModal() {
     _encReportPhoto = null;
     var repCat = document.getElementById('repCategory');
     var row = document.getElementById('repDocTypeRow');
-    if (repCat && row) row.style.display = repCat.value === 'Document & Identification' ? 'grid' : 'none';
+    if (repCat && row) row.style.display = (repCat.value === 'Unclaimed IDs' || repCat.value === 'IDs & Other Identification') ? 'grid' : 'none';
     var elecHint = document.getElementById('repElecHint');
     if (elecHint && repCat) elecHint.style.display = repCat.value === 'Electronics & Gadgets' ? '' : 'none';
     document.getElementById('encodeReportModal').classList.add('report-modal-open');
@@ -445,9 +487,9 @@ function closeEncodeReportModal() {
     if (!contact) { document.getElementById('repContact').focus(); return; }
     if (!dept) { document.getElementById('repDept').focus(); return; }
     if (!desc) { document.getElementById('repDesc').focus(); return; }
-    if (cat === 'Document & Identification') {
-      var dt = (document.getElementById('repDocType').value || '').trim();
-      if (!dt) { document.getElementById('repDocType').focus(); return; }
+    if (cat === 'IDs & Other Identification' || cat === 'Unclaimed IDs') {
+      var _dt = ((document.getElementById('repDocType')||{}).value || '').trim();
+      if (!_dt) { document.getElementById('repDocType').focus(); _reportsAppAlert('Please select a Document Type.'); return; }
     }
     var btn = this;
     document.getElementById('adminEncodeReviewTitle').textContent = 'Item Lost Report';

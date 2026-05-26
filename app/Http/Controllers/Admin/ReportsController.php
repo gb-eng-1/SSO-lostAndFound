@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Item;
-use App\Services\ItemPurgeService;
 use App\Models\Student;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -20,10 +18,12 @@ class ReportsController extends Controller
 {
     private const CATEGORIES = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
+        'IDs & Other Identification',
+        'Unclaimed IDs',
     ];
 
     /** GET /admin/reports */
@@ -50,9 +50,10 @@ class ReportsController extends Controller
             if ($fn === null || $fn === '') {
                 $fn = Student::where('email', $item->user_id)->value('name');
             }
+            // NOTE: Student PII — intentionally not displayed in admin UI; future school DB integration point.
             $item->parsed_full_name      = $fn ?: null;
             $item->parsed_student_number = $meta['Student Number'] ?? null;
-            $item->parsed_contact        = $meta['Contact'] ?? null;
+            $item->parsed_contact        = $meta['Contact'] ?? null; // Contact is shown; others are not.
             $item->parsed_department     = $meta['Department'] ?? null;
             $item->parsed_item           = $meta['Item'] ?? $meta['Item Type'] ?? null;
             return $item;
@@ -105,7 +106,7 @@ class ReportsController extends Controller
                 ->join('items', 'items.id', '=', 'item_matches.lost_report_id')
                 ->where('items.id', 'LIKE', 'REF-%')
                 ->whereNotIn('items.status', ['Claimed', 'Resolved', 'Cancelled', 'Disposed'])
-                ->select('item_matches.lost_report_id as id', 'items.item_type', 'item_matches.linked_at as created_at')
+                ->select('item_matches.found_item_id as id', 'items.item_type', 'item_matches.linked_at as created_at')
                 ->orderByDesc('item_matches.linked_at')
                 ->limit(8)
                 ->get();
@@ -129,26 +130,4 @@ class ReportsController extends Controller
         return array_slice($activities, 0, 8);
     }
 
-    /**
-     * POST /admin/reports/{id}/cancel — cancel a lost report (admin).
-     */
-    public function cancel(string $id): JsonResponse
-    {
-        if (! str_starts_with($id, 'REF-')) {
-            return response()->json(['ok' => false, 'error' => 'Invalid report id.'], 422);
-        }
-
-        $report = Item::lostReports()
-            ->where('id', $id)
-            ->whereNotIn('status', ['Claimed', 'Resolved', 'Cancelled', 'Disposed'])
-            ->first();
-
-        if (! $report) {
-            return response()->json(['ok' => false, 'error' => 'Report not found or already closed.'], 404);
-        }
-
-        (new ItemPurgeService)->purge($id);
-
-        return response()->json(['ok' => true]);
-    }
 }

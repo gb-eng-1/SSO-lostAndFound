@@ -51,7 +51,7 @@
         <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
       </span>
       <span class="matched-tab-text" id="histGuestTab">
-        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
+        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>All IDs
       </span>
     </div>
     <div class="browse-filter-form">
@@ -61,7 +61,7 @@
           <label class="sr-only" for="historyCategoryFilter">Filter by category</label>
           <select id="historyCategoryFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
             <option value="">Filter By Category</option>
-            @foreach(['Electronics & Gadgets','Document & Identification','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
+            @foreach(['Electronics & Gadgets','Books & School Supplies','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
               <option value="{{ $cat }}" {{ ($categoryFilter ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
             @endforeach
           </select>
@@ -75,8 +75,14 @@
             <option value="year"    {{ ($dateFilter ?? '') === 'year'    ? 'selected' : '' }}>This Year</option>
           </select>
         </div>
-        {{-- Guest Items filter: Date only --}}
-        <div id="histFilterGuest" style="display:none;">
+        {{-- All IDs filter: Subcategory + Date --}}
+        <div id="histFilterGuest" style="display:none;gap:8px;flex-wrap:wrap;">
+          <label class="sr-only" for="historyGuestCategoryFilter">Filter by subcategory</label>
+          <select id="historyGuestCategoryFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by subcategory">
+            <option value="">Filter By Subcategory</option>
+            <option value="Unclaimed IDs">Unclaimed IDs</option>
+            <option value="ID & Nameplate">IDs and Nameplates</option>
+          </select>
           <label class="sr-only" for="historyGuestDateFilter">Filter by date</label>
           <select id="historyGuestDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
             <option value="">Filter By Date</option>
@@ -102,7 +108,7 @@
       <table class="matched-reports-table" id="historyTable">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Category</th>
             <th>Found At</th>
             <th>Date Found</th>
@@ -175,7 +181,7 @@
       <table class="matched-reports-table" id="historyGuestTable">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Encoded By</th>
             <th>Date Surrendered</th>
             <th>Date Claimed</th>
@@ -201,6 +207,7 @@
             <tr class="matched-data-row"
                 data-modal-type="external"
                 data-id="{{ $item->id }}"
+                data-category="{{ $item->item_type }}"
                 data-id-type="{{ $meta['ID Type'] ?? '' }}"
                 data-fullname="{{ $meta['Owner'] ?? '' }}"
                 data-color="{{ $item->color }}"
@@ -250,7 +257,7 @@
           <span>No photo</span>
         </div>
         <img id="hdmPhoto" class="hdm-photo" src="" alt="Item photo" style="display:none;">
-        <p class="hdm-barcode" id="hdmBarcode">Barcode ID: —</p>
+        <p class="hdm-barcode" id="hdmBarcode">Reference ID: —</p>
         <div class="hdm-claimant-section">
           <h4 class="hdm-claimant-title">Claimant's Information</h4>
           <div class="hdm-claimant-field">
@@ -309,7 +316,7 @@ window.closeHdm = function(){
     if(imgUrl){ img.src=imgUrl; img.style.display='block'; if(ph) ph.style.display='none'; }
     else       { if(img) img.style.display='none'; if(ph) ph.style.display='flex'; }
 
-    if(bar) bar.textContent = 'Barcode ID: ' + v('data-id');
+    if(bar) bar.textContent = 'Reference ID: ' + v('data-id');
     if(cn)  cn.textContent  = v('data-claimant-name');
     if(ct)  ct.textContent  = v('data-contact');
     if(da)  da.textContent  = v('data-date-accomplished');
@@ -371,12 +378,18 @@ window.closeHdm = function(){
     allSec.style.display=''; gstSec.style.display='none';
     if(filterAll)  filterAll.style.display='flex';
     if(filterGst)  filterGst.style.display='none';
+    var gCat = document.getElementById('historyGuestCategoryFilter');
+    var gDate = document.getElementById('historyGuestDateFilter');
+    if(gCat) gCat.value=''; if(gDate) gDate.value='';
   }
   function showGuest(){
     gstTab.classList.add('matched-tab-active'); allTab.classList.remove('matched-tab-active');
     gstSec.style.display=''; allSec.style.display='none';
     if(filterAll)  filterAll.style.display='none';
     if(filterGst)  filterGst.style.display='flex';
+    var aCat = document.getElementById('historyCategoryFilter');
+    var aDate = document.getElementById('historyDateFilter');
+    if(aCat) aCat.value=''; if(aDate) aDate.value='';
   }
   allTab.addEventListener('click', showAll);
   gstTab.addEventListener('click', showGuest);
@@ -387,6 +400,7 @@ window.closeHdm = function(){
 document.getElementById('histApplyBtn').addEventListener('click', function(){
   var filterGuest = document.getElementById('histFilterGuest');
   if(filterGuest && filterGuest.style.display !== 'none'){
+    document.getElementById('historyGuestCategoryFilter').dispatchEvent(new Event('change'));
     document.getElementById('historyGuestDateFilter').dispatchEvent(new Event('change'));
   } else {
     document.getElementById('historyCategoryFilter').dispatchEvent(new Event('change'));
@@ -435,6 +449,15 @@ document.getElementById('historyDateFilter').addEventListener('change', function
 });
 document.getElementById('historyGuestDateFilter').addEventListener('change', function(){
   applyDateFilter('historyGuestTable', this.value);
+});
+
+// ── Guest subcategory filter (All IDs tab) ────────────────────────────────
+document.getElementById('historyGuestCategoryFilter').addEventListener('change', function(){
+  var val = (this.value||'').trim();
+  document.querySelectorAll('#historyGuestTable .matched-data-row').forEach(function(r){
+    var cat = (r.getAttribute('data-category')||'').trim();
+    r.style.display = (!val||cat===val) ? '' : 'none';
+  });
 });
 </script>
 @endpush

@@ -12,13 +12,18 @@
 .gdm-header-title{color:#fff;font-size:16px;font-weight:700;margin:0;}
 .gdm-close-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85;transition:opacity .15s;line-height:1;}
 .gdm-close-btn:hover{opacity:1;}
-.gdm-body{display:flex;flex:1;flex-direction:column;}
-.gdm-right{flex:1;padding:28px 28px 20px;display:flex;flex-direction:column;width:100%;}
+.gdm-body{display:flex;flex:1;flex-direction:row;min-height:0;}
+.gdm-left{width:38%;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:24px 16px 20px;border-right:1px solid #e5e7eb;background:#fafafa;}
+.gdm-photo{width:150px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #e0e0e0;}
+.gdm-photo-ph{width:150px;height:120px;background:#f3f4f6;border-radius:8px;border:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#9ca3af;font-size:11px;}
+.gdm-barcode-label{margin:10px 0 0;font-size:13px;color:#374151;font-weight:600;text-align:center;}
+.gdm-right{flex:1;padding:20px 22px 20px;display:flex;flex-direction:column;overflow-y:auto;}
+@media(max-width:560px){.gdm-body{flex-direction:column;}.gdm-left{width:100%;border-right:none;border-bottom:1px solid #e5e7eb;}}
 .gdm-section-title{font-size:15px;font-weight:700;color:#111827;margin:0 0 16px;text-align:center;}
 .gdm-info-row{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #f3f4f6;}
 .gdm-info-row:last-child{border-bottom:none;}
 .gdm-info-label{font-size:13px;color:#6b7280;min-width:130px;flex-shrink:0;}
-.gdm-info-value{font-size:13px;font-weight:700;color:#111827;text-align:right;flex:1;}
+.gdm-info-value{font-size:13px;font-weight:700;color:#111827;text-align:left;flex:1;}
 .gdm-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid #e5e7eb;}
 .gdm-btn-cancel{padding:9px 22px;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
 .gdm-btn-cancel:hover{background:#f3f4f6;}
@@ -28,8 +33,9 @@
 /* ── Confirm Item Claim Modal (ccm) ────────────────────────────── */
 .ccm-overlay{display:none;position:fixed;inset:0;z-index:1600;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
 .ccm-overlay.open{display:flex;}
-.ccm-modal{background:#fff;border-radius:12px;width:min(520px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.25);display:flex;flex-direction:column;}
-.ccm-header{background:#8b0000;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.ccm-modal{background:#fff;border-radius:12px;width:min(520px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.25);display:flex;flex-direction:column;scrollbar-width:none;-ms-overflow-style:none;}
+.ccm-modal::-webkit-scrollbar{display:none;}
+.ccm-header{background:#8b0000;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
 .ccm-header-title{color:#fff;font-size:15px;font-weight:700;margin:0;}
 .ccm-close-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85;transition:opacity .15s;line-height:1;}
 .ccm-close-btn:hover{opacity:1;}
@@ -42,9 +48,9 @@
 .ccm-item-sub{font-size:12px;color:#6b7280;}
 .ccm-section-yellow{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:14px 16px;margin-bottom:14px;}
 .ccm-section-title-yellow{font-size:13px;font-weight:700;color:#92400e;margin:0 0 14px;text-align:center;}
-.ccm-form-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ccm-form-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:10px;}
 .ccm-form-row:last-child{margin-bottom:0;}
-.ccm-label{font-size:12px;color:#374151;font-weight:500;min-width:118px;flex-shrink:0;}
+.ccm-label{font-size:12px;color:#374151;font-weight:500;min-width:118px;flex-shrink:0;text-align:right;}
 .ccm-input{flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-family:Poppins,sans-serif;font-size:12px;color:#111827;background:#fff;outline:none;transition:border-color .15s;}
 .ccm-input:focus{border-color:#8b0000;}
 .ccm-required{color:#dc2626;font-size:12px;}
@@ -68,9 +74,30 @@
 .rab-dismiss{background:none;border:none;cursor:pointer;color:#6b7280;font-size:14px;padding:3px 7px;border-radius:4px;line-height:1;}
 .rab-dismiss:hover{background:#dcfce7;color:#166534;}
 
-/* ima-guest-view-btn */
-.ima-guest-view-btn{display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:6px;background:#1976d2;color:#fff;font-size:12px;font-weight:600;font-family:Poppins,sans-serif;border:none;cursor:pointer;transition:opacity .15s;}
-.ima-guest-view-btn:hover{opacity:.85;}
+/* ima-guest-view-btn + ima-view-btn (internal items) */
+.ima-guest-view-btn,.ima-view-btn{display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:6px;background:#1976d2;color:#fff;font-size:12px;font-weight:600;font-family:Poppins,sans-serif;border:none;cursor:pointer;transition:opacity .15s;}
+.ima-guest-view-btn:hover,.ima-view-btn:hover{opacity:.85;}
+
+/* ── Internal Item Details Modal (iim) ───────────────────────────── */
+.iim-overlay{display:none;position:fixed;inset:0;z-index:1500;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
+.iim-overlay.open{display:flex;}
+.iim-modal{background:#fff;border-radius:12px;width:min(640px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.22);display:flex;flex-direction:column;scrollbar-width:none;-ms-overflow-style:none;}
+.iim-modal::-webkit-scrollbar{display:none;}
+.iim-header{background:#8b0000;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.iim-header-title{color:#fff;font-size:16px;font-weight:700;margin:0;}
+.iim-close-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85;transition:opacity .15s;line-height:1;}
+.iim-close-btn:hover{opacity:1;}
+.iim-body{display:flex;flex:1;flex-direction:column;}
+.iim-right{flex:1;padding:24px 24px 20px;display:flex;flex-direction:column;width:100%;}
+.iim-section-title{font-size:14px;font-weight:700;color:#111827;margin:0 0 12px;text-align:center;padding-bottom:8px;border-bottom:1px solid #e5e7eb;}
+.iim-info-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:13px;}
+.iim-info-row:last-child{border-bottom:none;}
+.iim-info-label{color:#6b7280;min-width:130px;flex-shrink:0;}
+.iim-info-value{font-weight:700;color:#111827;text-align:left;flex:1;word-break:break-word;}
+.iim-footer{display:flex;justify-content:flex-end;padding:14px 24px 20px;border-top:1px solid #e5e7eb;}
+.iim-btn-close{padding:9px 22px;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.iim-btn-close:hover{background:#f3f4f6;}
+.iim-barcode{font-size:14px;font-weight:700;color:#374151;text-align:center;margin-bottom:12px;}
 
 /* Admin claim gated until student acknowledges in app */
 .found-btn-claim--gated{
@@ -83,6 +110,34 @@
 
 /* header row */
 .matched-page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+
+/* Shared rounded info-card for item detail modals */
+.idm-info-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+
+/* CCM section labels */
+.ccm-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px;}
+.ccm-section-label--found{background:#dbeafe;color:#1e40af;}
+.ccm-section-label--lost{background:#fef3c7;color:#92400e;}
+
+/* CCM description toggle */
+.ccm-desc-toggle{margin-bottom:14px;}
+.ccm-desc-toggle summary{font-size:12px;font-weight:600;color:#374151;cursor:pointer;padding:8px 12px;background:#f3f4f6;border-radius:6px;border:1px solid #e5e7eb;list-style:none;display:flex;align-items:center;gap:6px;}
+.ccm-desc-toggle summary::-webkit-details-marker{display:none;}
+.ccm-desc-toggle[open] summary{border-radius:6px 6px 0 0;background:#e5e7eb;}
+.ccm-desc-body{background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:10px 12px;}
+.ccm-desc-item{margin-bottom:8px;}
+.ccm-desc-item:last-child{margin-bottom:0;}
+.ccm-desc-item-label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.ccm-desc-item-text{font-size:12px;color:#111827;white-space:pre-wrap;line-height:1.5;}
+
+/* CCM student report card */
+.ccm-student-report-card{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:14px;}
+.ccm-src-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #fef3c7;font-size:12px;}
+.ccm-src-row:last-child{border-bottom:none;}
+.ccm-src-label{color:#92400e;font-weight:600;min-width:90px;flex-shrink:0;}
+.ccm-src-value{color:#111827;flex:1;word-break:break-word;}
+.ccm-src-loading{font-size:12px;color:#92400e;font-style:italic;}
+.ccm-src-error{font-size:12px;color:#dc2626;font-style:italic;}
 </style>
 @endpush
 
@@ -109,7 +164,7 @@
         <i class="fa-solid fa-list" style="margin-right:5px;font-size:12px;"></i>All Items
       </span>
       <span class="matched-tab-text" id="guestItemsTab">
-        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>Guest Items
+        <i class="fa-solid fa-id-card" style="margin-right:5px;font-size:12px;"></i>All IDs
       </span>
       <a href="{{ route('admin.inventory') }}" class="found-btn" style="background:#8b0000;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;margin-left:6px;">View Inventory</a>
     </div>
@@ -118,12 +173,24 @@
         <label class="sr-only" for="matchedCategoryFilter">Filter by category</label>
         <select id="matchedCategoryFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
           <option value="">Filter By Category</option>
-          @foreach(['Electronics & Gadgets','Document & Identification','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
+          @foreach(['Electronics & Gadgets','Books & School Supplies','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
             <option>{{ $cat }}</option>
           @endforeach
         </select>
+        <label class="sr-only" for="matchedReportTypeFilter">Filter by report type</label>
+        <select id="matchedReportTypeFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by report type">
+          <option value="">Filter By Report Type</option>
+          <option value="lost">Lost Item Report</option>
+          <option value="found">Found Item Report</option>
+        </select>
+        <label class="sr-only" for="guestMatchedCategorySelect">Filter All IDs by subcategory</label>
+        <select id="guestMatchedCategorySelect" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter All IDs by subcategory" style="display:none;" disabled>
+          <option value="">Filter By Subcategory</option>
+          <option value="Unclaimed IDs">Unclaimed IDs</option>
+          <option value="ID & Nameplate">IDs and Nameplates</option>
+        </select>
         <label class="sr-only" for="matchedDateFilter">Filter by date</label>
-        <select id="matchedDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date" style="display:none;">
+        <select id="matchedDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date">
           <option value="">Filter By Date</option>
           <option value="today">Today</option>
           <option value="week">This Week</option>
@@ -144,12 +211,13 @@
       <table class="matched-reports-table" id="matchedReportsTable">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Category</th>
             <th>Found At</th>
             <th>Date Found</th>
             <th>Retention End</th>
             <th>Storage Location</th>
+            <th>Timestamp</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -171,7 +239,9 @@
                 data-storage-location="{{ $item->storage_location }}"
                 data-status="{{ $item->status }}"
                 data-item-name="{{ $itemName }}"
+                data-description="{{ $parsedMeta['clean_description'] ?? '' }}"
                 data-is-guest="0"
+                data-lost-report-id="{{ $item->linked_lost_report_id ?? '' }}"
                 @if($item->image_data) data-image="{{ $item->image_data }}" @endif>
               <td><strong>{{ $item->id }}</strong></td>
               <td>{{ $item->item_type ?? '—' }}</td>
@@ -186,6 +256,7 @@
                 @endif
               </td>
               <td>{{ $item->storage_location ?? '—' }}</td>
+              <td>{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—' }}</td>
               <td class="found-action-cell">
                 <button type="button"
                         class="found-btn-claim {{ $isOverdue ? 'btn-claim-expired' : '' }} {{ ($item->admin_claim_gated ?? false) ? 'found-btn-claim--gated' : '' }}"
@@ -194,7 +265,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="7" class="table-empty">No matched items pending claiming.</td></tr>
+            <tr><td colspan="8" class="table-empty">No matched items pending claiming.</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -211,7 +282,7 @@
       <table class="matched-reports-table" id="guestReportsTable">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Encoded By</th>
             <th>Date Surrendered</th>
             <th>Retention End</th>
@@ -251,8 +322,6 @@
               <td>{{ $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : '—' }}</td>
               <td class="found-action-cell">
                 <button type="button" class="ima-guest-view-btn">View</button>
-                <button type="button" class="found-btn-claim {{ $isOvd ? 'btn-claim-expired' : '' }}"
-                        {{ $isOvd ? 'disabled title="Retention period exceeded"' : '' }}>Claim</button>
               </td>
             </tr>
           @empty
@@ -267,6 +336,40 @@
 
 @push('scripts')
 
+{{-- ── Internal Item Details Modal (iim) ───────────────────────────────── --}}
+<div class="iim-overlay" id="internalDetailsModal" role="dialog" aria-modal="true"
+     onclick="if(event.target===this)closeIIMModal()">
+  <div class="iim-modal" onclick="event.stopPropagation()">
+    <div class="iim-header">
+      <h3 class="iim-header-title">Item Details</h3>
+      <button type="button" class="iim-close-btn" onclick="closeIIMModal()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="iim-body">
+      <div class="iim-right">
+        <p class="iim-barcode" id="iimBarcode">—</p>
+        <h4 class="iim-section-title">General Information</h4>
+        <div class="idm-info-card">
+          <div class="iim-info-row"><span class="iim-info-label">Category</span><span class="iim-info-value" id="iimCategory">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Item</span><span class="iim-info-value" id="iimItem">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Color</span><span class="iim-info-value" id="iimColor">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Brand</span><span class="iim-info-value" id="iimBrand">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Item Description</span><span class="iim-info-value" id="iimDescription">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Storage Location</span><span class="iim-info-value" id="iimStorage">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Found At</span><span class="iim-info-value" id="iimFoundAt">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Found By</span><span class="iim-info-value" id="iimFoundBy">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Encoded By</span><span class="iim-info-value" id="iimEncodedBy">—</span></div>
+          <div class="iim-info-row"><span class="iim-info-label">Date Found</span><span class="iim-info-value" id="iimDateFound">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="iim-footer">
+      <button type="button" class="iim-btn-close" onclick="closeIIMModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 {{-- ── Guest Item Details Modal ─────────────────────────────────────────── --}}
 <div class="gdm-overlay" id="guestDetailsModal" role="dialog" aria-modal="true"
      onclick="if(event.target===this)closeGuestDetailsModal()">
@@ -278,15 +381,24 @@
       </button>
     </div>
     <div class="gdm-body">
+      <div class="gdm-left">
+        <div id="gdmPhotoPh" class="gdm-photo-ph"><i class="fa-solid fa-id-card" style="font-size:28px;color:#9ca3af;"></i><span>No photo</span></div>
+        <img id="gdmPhoto" class="gdm-photo" src="" alt="ID photo" style="display:none;">
+        <p class="gdm-barcode-label" id="gdmBarcodeLabel">Barcode ID: —</p>
+      </div>
       <div class="gdm-right">
         <h4 class="gdm-section-title">General Information</h4>
-        <div class="gdm-info-row"><span class="gdm-info-label">Barcode ID:</span><span class="gdm-info-value" id="gdmBarcode">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">ID Type:</span><span class="gdm-info-value" id="gdmIdType">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">Fullname:</span><span class="gdm-info-value" id="gdmFullname">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">Color:</span><span class="gdm-info-value" id="gdmColor">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">Storage Location:</span><span class="gdm-info-value" id="gdmStorage">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">Encoded By:</span><span class="gdm-info-value" id="gdmEncodedBy">—</span></div>
-        <div class="gdm-info-row"><span class="gdm-info-label">Date Surrendered:</span><span class="gdm-info-value" id="gdmDateSurrendered">—</span></div>
+        <div class="idm-info-card">
+          <div class="gdm-info-row"><span class="gdm-info-label">Reference ID:</span><span class="gdm-info-value" id="gdmBarcode">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Subcategory:</span><span class="gdm-info-value" id="gdmCategory">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">ID Type:</span><span class="gdm-info-value" id="gdmIdType">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Owner Name:</span><span class="gdm-info-value" id="gdmFullname">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Color:</span><span class="gdm-info-value" id="gdmColor">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Storage Location:</span><span class="gdm-info-value" id="gdmStorage">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Encoded By:</span><span class="gdm-info-value" id="gdmEncodedBy">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Date Surrendered:</span><span class="gdm-info-value" id="gdmDateSurr">—</span></div>
+          <div class="gdm-info-row"><span class="gdm-info-label">Retention End:</span><span class="gdm-info-value" id="gdmRetentionEnd">—</span></div>
+        </div>
       </div>
     </div>
     <div class="gdm-footer">
@@ -307,6 +419,7 @@
       </button>
     </div>
     <div class="ccm-body">
+      <p style="margin:0 0 6px;"><span class="ccm-section-label ccm-section-label--found">Encoded Found Item</span></p>
       <div class="ccm-item-summary">
         <div class="ccm-thumb-placeholder" id="ccmThumbPlaceholder"><i class="fa-solid fa-box"></i></div>
         <img id="ccmThumb" class="ccm-thumb" src="" alt="" style="display:none;">
@@ -315,6 +428,27 @@
           <span class="ccm-item-sub" id="ccmItemSub">—</span>
         </div>
       </div>
+      {{-- Expandable description toggle (12.1) --}}
+      <details class="ccm-desc-toggle" id="ccmDescToggle">
+        <summary><i class="fa-solid fa-align-left" style="font-size:11px;"></i> View Item Descriptions</summary>
+        <div class="ccm-desc-body">
+          <div class="ccm-desc-item">
+            <div class="ccm-desc-item-label">Encoded Found Item</div>
+            <div class="ccm-desc-item-text" id="ccmFoundDesc">—</div>
+          </div>
+          <div class="ccm-desc-item" style="margin-top:8px;">
+            <div class="ccm-desc-item-label">Student's Lost Report</div>
+            <div class="ccm-desc-item-text" id="ccmLostDesc">—</div>
+          </div>
+        </div>
+      </details>
+
+      {{-- Student lost report mini-card (12.2) wrapped in accordion --}}
+      <details class="ccm-desc-toggle" id="ccmStudentCardToggle" style="display:none;">
+        <summary><i class="fa-solid fa-user" style="font-size:11px;"></i> <span class="ccm-section-label ccm-section-label--lost" style="font-size:11px;padding:0;background:none;border-radius:0;">Student's Lost Report</span></summary>
+        <div id="ccmStudentReportCard" class="ccm-student-report-card"></div>
+      </details>
+
       <div class="ccm-section-yellow">
         <p class="ccm-section-title-yellow">Verification of Claimant's Identity</p>
         <div class="ccm-form-row">
@@ -367,7 +501,7 @@
           <input type="date" id="ccmDateAccomplishment" class="ccm-input" style="flex:1;" max="{{ date('Y-m-d') }}">
         </div>
       </div>
-      <p class="ccm-disclaimer">Disclaimer: Image Uploaded will be used for the system only.</p>
+      <p class="ccm-disclaimer">By submitting this form, you confirm that the photo provided serves as official proof of the claiming transaction. This image will only be accessible to the SSO and its Lost and Found System, and will not be disclosed to any third party in compliance with data privacy regulations.</p>
     </div>
     <div class="ccm-footer">
       <button type="button" class="ccm-btn-cancel" onclick="closeConfirmClaimModal()">Cancel</button>
@@ -403,25 +537,36 @@ var _ccmImg = null;
 var _ccmIsGuest = false;
 
 // ── Tab switching ──────────────────────────────────────────────────────────
+var _matchedActiveTab = 'all';
 (function(){
-  var allTab   = document.getElementById('allItemsTab');
-  var gstTab   = document.getElementById('guestItemsTab');
-  var recovSec = document.getElementById('recoveredSection');
-  var gstSec   = document.getElementById('guestSection');
-  var catFlt   = document.getElementById('matchedCategoryFilter');
-  var dateFlt  = document.getElementById('matchedDateFilter');
+  var allTab       = document.getElementById('allItemsTab');
+  var gstTab       = document.getElementById('guestItemsTab');
+  var recovSec     = document.getElementById('recoveredSection');
+  var gstSec       = document.getElementById('guestSection');
+  var catFlt       = document.getElementById('matchedCategoryFilter');
+  var typeFlt      = document.getElementById('matchedReportTypeFilter');
+  var guestCatFlt  = document.getElementById('guestMatchedCategorySelect');
+  var dateFlt      = document.getElementById('matchedDateFilter');
   if(!allTab||!gstTab) return;
   function showAll(){
     allTab.classList.add('matched-tab-active'); gstTab.classList.remove('matched-tab-active');
     recovSec.style.display=''; gstSec.style.display='none';
-    catFlt.style.display=''; dateFlt.style.display='none';
-    dateFlt.value='';
+    catFlt.style.display=''; catFlt.disabled=false;
+    if(typeFlt){ typeFlt.style.display=''; typeFlt.disabled=false; }
+    guestCatFlt.style.display='none'; guestCatFlt.disabled=true;
+    dateFlt.style.display='';
+    guestCatFlt.value=''; dateFlt.value=''; if(typeFlt) typeFlt.value='';
+    _matchedActiveTab='all';
   }
   function showGuest(){
     gstTab.classList.add('matched-tab-active'); allTab.classList.remove('matched-tab-active');
     gstSec.style.display=''; recovSec.style.display='none';
-    dateFlt.style.display=''; catFlt.style.display='none';
-    catFlt.value='';
+    guestCatFlt.style.display=''; guestCatFlt.disabled=false;
+    catFlt.style.display='none'; catFlt.disabled=true;
+    if(typeFlt){ typeFlt.style.display='none'; typeFlt.disabled=true; }
+    dateFlt.style.display='';
+    catFlt.value=''; dateFlt.value=''; if(typeFlt) typeFlt.value='';
+    _matchedActiveTab='guest';
   }
   allTab.addEventListener('click', showAll);
   gstTab.addEventListener('click', showGuest);
@@ -429,18 +574,14 @@ var _ccmIsGuest = false;
 
 // ── Apply button ──────────────────────────────────────────────────────────
 document.getElementById('matchedApplyBtn').addEventListener('click', function(){
-  var dateFlt = document.getElementById('matchedDateFilter');
-  var catFlt  = document.getElementById('matchedCategoryFilter');
-  if(dateFlt.style.display === 'none' || dateFlt.style.display === ''){
-    // All Items tab active — apply category filter
-    if(catFlt.style.display !== 'none') {
-      catFlt.dispatchEvent(new Event('change'));
-    } else {
-      dateFlt.dispatchEvent(new Event('change'));
-    }
+  if(_matchedActiveTab === 'all'){
+    document.getElementById('matchedCategoryFilter').dispatchEvent(new Event('change'));
+    var tf = document.getElementById('matchedReportTypeFilter');
+    if(tf) tf.dispatchEvent(new Event('change'));
   } else {
-    dateFlt.dispatchEvent(new Event('change'));
+    document.getElementById('guestMatchedCategorySelect').dispatchEvent(new Event('change'));
   }
+  document.getElementById('matchedDateFilter').dispatchEvent(new Event('change'));
 });
 
 // ── Category filter (All Items tab) ────────────────────────────────────────
@@ -452,7 +593,30 @@ document.getElementById('matchedCategoryFilter').addEventListener('change', func
   });
 });
 
-// ── Date filter (Guest Items tab) ─────────────────────────────────────────
+// ── Report Type filter (All Items tab) ────────────────────────────────────
+(function(){
+  var tf = document.getElementById('matchedReportTypeFilter');
+  if(!tf) return;
+  tf.addEventListener('change', function(){
+    var val = this.value;
+    document.querySelectorAll('#recoveredSection .matched-data-row').forEach(function(row){
+      var hasReport = !!(row.getAttribute('data-lost-report-id')||'').trim();
+      var show = !val || (val==='lost' && hasReport) || (val==='found' && !hasReport);
+      row.style.display = show ? '' : 'none';
+    });
+  });
+})();
+
+// ── Guest category filter (All IDs tab) ──────────────────────────────────
+document.getElementById('guestMatchedCategorySelect').addEventListener('change', function(){
+  var val = this.value.trim();
+  document.querySelectorAll('#guestSection .matched-data-row').forEach(function(row){
+    var cat = (row.getAttribute('data-category')||'').trim();
+    row.style.display = (!val || cat === val) ? '' : 'none';
+  });
+});
+
+// ── Date filter (both tabs) ───────────────────────────────────────────────
 document.getElementById('matchedDateFilter').addEventListener('change', function(){
   var val = this.value;
   var now = new Date();
@@ -461,7 +625,9 @@ document.getElementById('matchedDateFilter').addEventListener('change', function
   var weekStartStr = weekStart.toISOString().slice(0,10);
   var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
 
-  document.querySelectorAll('#guestSection .matched-data-row').forEach(function(row){
+  var sectionSel = _matchedActiveTab === 'all' ? '#recoveredSection' : '#guestSection';
+  document.querySelectorAll(sectionSel + ' .matched-data-row').forEach(function(row){
+    if(!val){ row.style.display=''; return; }
     var d = row.getAttribute('data-date-encoded')||'';
     var show = true;
     if(val === 'today')  show = d === todayStr;
@@ -478,20 +644,75 @@ var _ccmPP = PhotoPicker.init({
 });
 function clearCcmFile(){ _ccmImg = null; if(_ccmPP) _ccmPP.clear(); }
 
+// ── Internal Item Details Modal (iim) ─────────────────────────────────────
+var _ITEM_URL_IIM = @json(route('admin.item'));
+function openIIMModal(id){
+  var overlay = document.getElementById('internalDetailsModal');
+  if(!overlay) return;
+  ['iimCategory','iimItem','iimColor','iimBrand','iimDescription','iimStorage','iimFoundAt','iimFoundBy','iimEncodedBy','iimDateFound'].forEach(function(eid){
+    var el = document.getElementById(eid); if(el) el.textContent = '…';
+  });
+  document.getElementById('iimBarcode').textContent = id;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  fetch(_ITEM_URL_IIM + '?id=' + encodeURIComponent(id), {
+    headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+  }).then(function(r){return r.json();}).then(function(json){
+    if(!json.ok||!json.data) return;
+    var d = json.data;
+    var p = d.parsed||{};
+    function set(eid,val){ var el=document.getElementById(eid); if(el) el.textContent=(val&&val!=='')?val:'—'; }
+    set('iimBarcode', d.display_ticket_id||d.id);
+    set('iimCategory', d.item_type);
+    set('iimItem', p.item);
+    set('iimColor', d.color);
+    set('iimBrand', d.brand);
+    set('iimDescription', p.clean_description||d.item_description);
+    set('iimStorage', d.storage_location);
+    set('iimFoundAt', d.found_at);
+    set('iimFoundBy', d.found_by||d.encoded_by_parsed);
+    set('iimEncodedBy', d.encoded_by_parsed);
+    set('iimDateFound', d.date_encoded||d.date_found);
+  }).catch(function(){});
+}
+function closeIIMModal(){
+  var overlay = document.getElementById('internalDetailsModal');
+  if(overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+// IIM modal trigger removed (View button removed from All Items tab per Issue 38.1)
+
 // ── Guest Item Details Modal ───────────────────────────────────────────────
 function openGuestDetailsModal(row){
   _ccmRow = null;
-  var overlayEl = document.getElementById('guestDetailsModal');
   function v(a){ return row.getAttribute(a)||'—'; }
-  document.getElementById('gdmBarcode').textContent = v('data-id');
-  document.getElementById('gdmIdType').textContent       = v('data-id-type');
-  document.getElementById('gdmFullname').textContent     = v('data-fullname');
-  document.getElementById('gdmColor').textContent        = v('data-color');
-  document.getElementById('gdmStorage').textContent      = v('data-storage-location');
-  document.getElementById('gdmEncodedBy').textContent    = v('data-found-by');
-  document.getElementById('gdmDateSurrendered').textContent = v('data-date-encoded');
+  // Photo
+  var imgUrl = row.getAttribute('data-image')||'';
+  var ph  = document.getElementById('gdmPhotoPh');
+  var img = document.getElementById('gdmPhoto');
+  if(imgUrl){ img.src=imgUrl; img.style.display='block'; if(ph) ph.style.display='none'; }
+  else       { if(img) img.style.display='none'; if(ph) ph.style.display='flex'; }
+  var blbl = document.getElementById('gdmBarcodeLabel');
+  if(blbl) blbl.textContent = 'Barcode ID: ' + v('data-id');
+  // Fields
+  document.getElementById('gdmBarcode').textContent    = v('data-id');
+  document.getElementById('gdmCategory').textContent   = v('data-category');
+  document.getElementById('gdmIdType').textContent     = v('data-id-type');
+  document.getElementById('gdmFullname').textContent   = v('data-fullname');
+  document.getElementById('gdmColor').textContent      = v('data-color');
+  document.getElementById('gdmStorage').textContent    = v('data-storage-location');
+  document.getElementById('gdmEncodedBy').textContent  = v('data-found-by');
+  document.getElementById('gdmDateSurr').textContent   = v('data-date-encoded');
+  // Retention end: date-encoded + 1 year
+  var dateEnc = row.getAttribute('data-date-encoded')||'';
+  var retEnd = '—';
+  if(dateEnc && dateEnc !== '—'){
+    var rd = new Date(dateEnc); rd.setFullYear(rd.getFullYear()+1);
+    retEnd = rd.toISOString().slice(0,10);
+  }
+  document.getElementById('gdmRetentionEnd').textContent = retEnd;
   _ccmRow = row;
-  overlayEl.classList.add('open');
+  document.getElementById('guestDetailsModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeGuestDetailsModal(){
@@ -508,9 +729,6 @@ document.getElementById('guestReportsTable').addEventListener('click', function(
   if(!row || row.querySelector('td[colspan]')) return;
   if(e.target.closest('.ima-guest-view-btn')){
     openGuestDetailsModal(row);
-  }
-  if(e.target.closest('.found-btn-claim:not([disabled])')){
-    openConfirmClaimModal(row);
   }
 });
 
@@ -544,6 +762,46 @@ function openConfirmClaimModal(row){
   if(nm) nm.textContent = displayName;
   if(sb) sb.textContent = storage || '—';
 
+  // Populate description toggle (12.1)
+  var descToggle = document.getElementById('ccmDescToggle');
+  var foundDescEl = document.getElementById('ccmFoundDesc');
+  var lostDescEl  = document.getElementById('ccmLostDesc');
+  if(descToggle) descToggle.removeAttribute('open');
+  if(foundDescEl) foundDescEl.textContent = v('data-description') || '—';
+  if(lostDescEl)  lostDescEl.textContent  = '—';
+
+  // Load student report card (12.2)
+  var srcCard = document.getElementById('ccmStudentReportCard');
+  var cardToggle = document.getElementById('ccmStudentCardToggle');
+  var lostReportId = v('data-lost-report-id');
+  if(srcCard){
+    srcCard.innerHTML = '';
+    if(cardToggle) cardToggle.style.display = 'none';
+    if(lostReportId && lostReportId !== '—' && lostReportId !== ''){
+      if(cardToggle) cardToggle.style.display = '';
+      srcCard.innerHTML = '<div class="ccm-src-loading">Loading report details…</div>';
+      var _itemUrl = @json(route('admin.item'));
+      fetch(_itemUrl + '?id=' + encodeURIComponent(lostReportId), {
+        headers:{'Accept':'application/json','X-CSRF-TOKEN':_CSRF}
+      }).then(function(r){return r.json();}).then(function(json){
+        if(!json.ok){ srcCard.innerHTML = '<div class="ccm-src-error">Could not load report.</div>'; return; }
+        var d = json.data;
+        var parsed = d.parsed || {};
+        var esc = function(s){return String(s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+        var desc = parsed.clean_description || d.item_description || '';
+        if(desc.length > 200) desc = desc.substring(0,200) + '…';
+        srcCard.innerHTML =
+          '<div class="ccm-src-row"><span class="ccm-src-label">Category:</span><span class="ccm-src-value">'+esc(d.item_type)+'</span></div>'
+          +'<div class="ccm-src-row"><span class="ccm-src-label">Item:</span><span class="ccm-src-value">'+esc(parsed.item||d.item_type)+'</span></div>'
+          +'<div class="ccm-src-row"><span class="ccm-src-label">Description:</span><span class="ccm-src-value">'+esc(desc)+'</span></div>'
+          +'<div class="ccm-src-row"><span class="ccm-src-label">Date Lost:</span><span class="ccm-src-value">'+esc(d.date_lost ? String(d.date_lost).split(' ')[0] : null)+'</span></div>';
+        if(lostDescEl) lostDescEl.textContent = parsed.clean_description || d.item_description || '—';
+      }).catch(function(){
+        srcCard.innerHTML = '<div class="ccm-src-error">Could not load report.</div>';
+      });
+    }
+  }
+
   // Adjust email field placeholder and error message based on context
   var emailInput = document.getElementById('ccmUbMail');
   if(_ccmIsGuest){
@@ -571,6 +829,12 @@ function openConfirmClaimModal(row){
 function closeConfirmClaimModal(){
   document.getElementById('confirmClaimModal').classList.remove('open');
   document.body.style.overflow = '';
+  var srcCard = document.getElementById('ccmStudentReportCard');
+  if(srcCard){ srcCard.innerHTML=''; }
+  var cardToggle = document.getElementById('ccmStudentCardToggle');
+  if(cardToggle){ cardToggle.style.display='none'; cardToggle.removeAttribute('open'); }
+  var descToggle = document.getElementById('ccmDescToggle');
+  if(descToggle) descToggle.removeAttribute('open');
 }
 
 // Email live validation (context-sensitive)
@@ -700,7 +964,7 @@ document.getElementById('rabDismiss').addEventListener('click', function(){
 
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
-  closeGuestDetailsModal(); closeConfirmClaimModal();
+  closeIIMModal(); closeGuestDetailsModal(); closeConfirmClaimModal();
 });
 
 // Auto-select tab based on ?tab query param (used when navigating from the Inventory page)

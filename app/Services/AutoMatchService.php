@@ -134,13 +134,14 @@ class AutoMatchService
         return Item::lostReports()
             ->whereNotIn('status', ['Claimed', 'Resolved', 'Cancelled', 'Disposed'])
             ->whereNull('matched_barcode_id')
+            ->whereNotIn('item_type', ['IDs & Other Identification', 'Unclaimed IDs'])
             ->orderByDesc('date_lost');
     }
 
     private function eligibleFoundItems()
     {
         return Item::foundItems()
-            ->where('item_type', '!=', 'ID & Nameplate')
+            ->whereNotIn('item_type', ['ID & Nameplate', 'Unclaimed IDs'])
             ->where('status', 'Unclaimed Items')
             ->orderByDesc('date_encoded');
     }
@@ -155,7 +156,7 @@ class AutoMatchService
     private function isEligibleFoundItem(Item $item): bool
     {
         return !str_starts_with($item->id, 'REF-')
-            && $item->item_type !== 'ID & Nameplate'
+            && !in_array($item->item_type, ['ID & Nameplate', 'Unclaimed IDs'], true)
             && $item->status === 'Unclaimed Items';
     }
 

@@ -407,6 +407,31 @@ php artisan serve</div>
 
 Lost report: Unclaimed Items → For Verification → Resolved (when found item is Claimed)
                              ↘ Cancelled (student cancelled report)</div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;font-weight:600;margin-bottom:6px;color:#0f172a;">Student PII Fields</p>
+    <p style="font-size:13px;color:#475569;margin-bottom:10px;">
+      When a student submits a lost report, personal information is embedded into <code>item_description</code> as key-value lines
+      (<code>Full Name: …</code>, <code>Student Number: …</code>, <code>Department: …</code>, <code>Contact: …</code>).
+      These are parsed by <code>Item::parseDescription()</code> and assigned to transient model properties
+      (<code>parsed_full_name</code>, <code>parsed_student_number</code>, <code>parsed_department</code>, <code>parsed_contact</code>)
+      in <code>ReportsController</code>.
+    </p>
+    <p style="font-size:13px;color:#475569;margin-bottom:10px;">
+      <strong>Only <code>Contact Number</code> is currently shown</strong> in the admin Reports modal.
+      Full Name, Student Number, and Department are parsed but intentionally hidden from all admin displays
+      in compliance with data privacy policy.
+    </p>
+    <p style="font-size:13px;color:#475569;margin-bottom:6px;">
+      <strong>Future integration point:</strong> These PII fields will eventually be resolved from the school's student database
+      instead of being embedded in <code>item_description</code>. When that integration is built:
+    </p>
+    <ol style="font-size:13px;color:#475569;margin-bottom:0;padding-left:24px;">
+      <li>Replace the embedded-metadata parsing in <code>Item::parseDescription()</code> with a school DB lookup by student ID / email.</li>
+      <li>Update <code>ReportsController</code> to query the school database for student details rather than reading from <code>item_description</code>.</li>
+      <li>Remove or replace the PII lines embedded in <code>item_description</code> once the external source is authoritative.</li>
+    </ol>
   </div>
 
   {{-- ─── Google Drive Image Storage ─────────────────────────────────────── --}}

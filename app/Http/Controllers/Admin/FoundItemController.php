@@ -33,17 +33,18 @@ class FoundItemController extends Controller
 
     private const CATEGORIES = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
         'ID & Nameplate',
+        'Unclaimed IDs',
     ];
 
-    /** Categories shown in the internal table / filter (excludes guest ID type). */
+    /** Categories shown in the internal table / filter (excludes guest ID types). */
     private const INTERNAL_CATEGORY_OPTIONS = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
@@ -70,11 +71,11 @@ class FoundItemController extends Controller
 
         $dateRange = $this->resolveDateRange($request->query('date_filter'), $dateFrom, $dateTo);
 
-        // Internal: found items not in the guest-tab bucket (Recovered IDs lists ID & Nameplate + Document & Identification)
+        // Internal: found items not in the guest-tab bucket (Recovered IDs lists ID & Nameplate + Unclaimed IDs)
         $internalQuery = Item::foundItems()
             ->where(function ($q) {
                 $q->whereNull('item_type')
-                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Unclaimed IDs']);
             })
             ->when(!$status, fn ($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
             ->when($category !== null && $category !== '', function ($q) use ($category) {
@@ -93,7 +94,7 @@ class FoundItemController extends Controller
             ->map(fn ($item) => $this->attachRetention($item, self::INTERNAL_RETENTION_YEARS));
 
         $guestQuery = Item::foundItems()
-            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
+            ->whereIn('item_type', ['ID & Nameplate', 'Unclaimed IDs'])
             ->when(!$status, fn ($q) => $q->whereNotIn('status', ['Cancelled', 'Disposed']))
             ->when($category !== null && $category !== '', function ($q) use ($category) {
                 if (Item::isFoundGuestTabCategory($category)) {
@@ -157,8 +158,8 @@ class FoundItemController extends Controller
         if ($barcode === '') {
             return response()->json(['ok' => false, 'error' => 'Missing barcode parameter.'], 422);
         }
-        if (str_starts_with($barcode, 'REF-')) {
-            return response()->json(['ok' => false, 'error' => 'Invalid barcode for a found item.'], 422);
+        if (!preg_match('/^(UBBC|UBLC)-\d{4}-\d+$/', $barcode)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid Report ID format. Expected UBBC/UBLC-SYSY-NNNN.'], 422);
         }
 
         $exists = Item::foundItems()->where('id', $barcode)->exists();
@@ -175,7 +176,7 @@ class FoundItemController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'barcode_id'       => 'required|string|max:50',
+            'barcode_id'       => ['required', 'string', 'max:50', 'regex:/^(UBBC|UBLC)-\d{4}-\d+$/'],
             'category'         => 'nullable|string|max:100',
             'item'             => 'required|string|max:200',
             'color'            => 'required|string|max:100',
@@ -229,7 +230,7 @@ class FoundItemController extends Controller
             'student_email'    => 'required|email',
             'document_type'    => 'nullable|string|max:120',
         ];
-        if ($request->input('category') === 'Document & Identification') {
+        if ($request->input('category') === 'Unclaimed IDs') {
             $rules['document_type'] = ['required', Rule::in(LostReportController::DOCUMENT_TYPES)];
         }
 
@@ -238,7 +239,7 @@ class FoundItemController extends Controller
         $userId = trim($validated['student_email']);
 
         $desc   = trim($validated['item_description']);
-        if (($validated['category'] ?? '') === 'Document & Identification' && ! empty($validated['document_type'])) {
+        if (($validated['category'] ?? '') === 'Unclaimed IDs' && ! empty($validated['document_type'])) {
             $desc = 'Document Type: ' . $validated['document_type'] . "\n" . $desc;
         }
         $prepend = [];
@@ -313,13 +314,15 @@ class FoundItemController extends Controller
     public function storeGuest(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'barcode_id'       => 'required|string|max:50',
+            'barcode_id'       => ['required', 'string', 'max:50', 'regex:/^(UBBC|UBLC)-\d{4}-\d+$/'],
+            'item_type'        => ['nullable', 'string', Rule::in(['ID & Nameplate', 'Unclaimed IDs'])],
             'id_type'          => 'nullable|string|max:100',
             'fullname'         => 'required|string|max:200',
             'color'            => ['required', 'string', 'max:100', Rule::in(ReportColors::ALLOWED)],
             'storage_location' => 'nullable|string|max:200',
             'encoded_by'       => 'nullable|string|max:200',
             'found_by'         => 'nullable|string|max:200',
+            'contact_number'   => 'nullable|string|max:50',
             'date_surrendered' => 'nullable|date|before_or_equal:today',
             'imageDataUrl'     => 'nullable|string',
         ]);
@@ -328,19 +331,31 @@ class FoundItemController extends Controller
         if ($barcodeId === '') {
             return response()->json(['ok' => false, 'error' => 'Barcode ID is required.'], 422);
         }
-        if (str_starts_with($barcodeId, 'REF-')) {
-            return response()->json(['ok' => false, 'error' => 'Invalid Barcode ID.'], 422);
+        if (!preg_match('/^(UBBC|UBLC)-\d{4}-\d+$/', $barcodeId)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid Report ID format.'], 422);
         }
 
         if (Item::find($barcodeId)) {
             return response()->json(['ok' => false, 'error' => "Barcode '{$barcodeId}' already exists."], 409);
         }
 
+        $resolvedType = $validated['item_type'] ?? 'ID & Nameplate';
+
         $desc = '';
-        if (!empty($validated['found_by'])) {
-            $desc = 'Found By: ' . trim($validated['found_by']) . "\n";
+        if ($resolvedType === 'Unclaimed IDs') {
+            $desc .= 'Owner: ' . $validated['fullname'];
+            if (!empty($validated['contact_number'])) {
+                $desc .= "\nContact: " . trim($validated['contact_number']);
+            }
+            if (!empty($validated['id_type'])) {
+                $desc .= "\nID Type: " . $validated['id_type'];
+            }
+        } else {
+            if (!empty($validated['found_by'])) {
+                $desc = 'Found By: ' . trim($validated['found_by']) . "\n";
+            }
+            $desc .= 'Owner: ' . $validated['fullname'] . "\nID Type: " . ($validated['id_type'] ?? '');
         }
-        $desc .= 'Owner: ' . $validated['fullname'] . "\nID Type: " . ($validated['id_type'] ?? '');
 
         try {
             $normalized = ReportImageNormalizer::normalize($validated['imageDataUrl'] ?? null);
@@ -351,12 +366,12 @@ class FoundItemController extends Controller
 
         $item = Item::create([
             'id'               => $barcodeId,
-            'item_type'        => 'ID & Nameplate',
+            'item_type'        => $resolvedType,
             'item_description' => $desc,
             'color'            => $validated['color'],
-            'storage_location' => $validated['storage_location'] ?? null,
-            'found_by'         => $validated['encoded_by'] ?? null,
-            'date_encoded'     => $validated['date_surrendered'] ?? now()->toDateString(),
+            'storage_location' => $resolvedType === 'Unclaimed IDs' ? null : ($validated['storage_location'] ?? null),
+            'found_by'         => $resolvedType === 'Unclaimed IDs' ? null : ($validated['encoded_by'] ?? null),
+            'date_encoded'     => $resolvedType === 'Unclaimed IDs' ? now()->toDateString() : ($validated['date_surrendered'] ?? now()->toDateString()),
             'image_data'       => $imageData,
             'status'           => 'Unclaimed Items',
         ]);
@@ -366,23 +381,6 @@ class FoundItemController extends Controller
         return response()->json(['ok' => true, 'id' => $barcodeId]);
     }
 
-    /** DELETE /admin/found-items/{id} — permanently remove item and links */
-    public function destroy(string $id): JsonResponse
-    {
-        try {
-            Item::findOrFail($id);
-            (new ItemPurgeService)->purge($id);
-
-            return response()->json(['ok' => true]);
-        } catch (\Throwable $e) {
-            report($e);
-
-            return response()->json([
-                'ok'    => false,
-                'error' => 'Could not remove item.',
-            ], 500);
-        }
-    }
 
     // ── Private helpers ────────────────────────────────────────────────────────
 
@@ -402,11 +400,10 @@ class FoundItemController extends Controller
         return $ids->unique()->values()->count();
     }
 
-    private function attachRetention(Item $item, int $years): Item
+    private function attachRetention(Item $item, int $years = 2): Item
     {
-        $base = $item->date_encoded ?? $item->created_at;
-        if ($base) {
-            $retentionEnd = Carbon::parse($base)->addYears($years);
+        $retentionEnd = $item->retentionEndDate();
+        if ($retentionEnd) {
             $item->retention_end      = $retentionEnd->toDateString();
             $item->is_overdue         = $retentionEnd->isPast();
             $item->expires_in_30_days = !$item->is_overdue && $retentionEnd->isFuture() && now()->diffInDays($retentionEnd, false) <= 30;

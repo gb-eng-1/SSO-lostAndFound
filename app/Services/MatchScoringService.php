@@ -11,46 +11,35 @@ use App\Models\Item;
  */
 class MatchScoringService
 {
-    public const MIN_SCORE = 40;
+    public const MIN_SCORE = 50;
 
     /**
      * Score how well a found item matches a lost report.
      * Max possible score: 100.
-     *   - Category match:       20 pts
-     *   - Item-type match:      20 pts
-     *   - Color match:          20 pts
-     *   - Brand match:          20 pts
-     *   - Description Jaccard:  0–20 pts
+     *   - Category match:   35 pts
+     *   - Item-type match:  65 pts  (primary criterion — match triggers at ≥50)
+     *
+     * Color, brand, and description similarity are intentionally excluded;
+     * only category and item name are used to keep matches broad but relevant.
      */
     public function score(Item $report, Item $found): int
     {
         $score = 0;
 
-        $cat   = trim($report->item_type ?? '');
-        $color = trim($report->color ?? '');
-        $brand = trim($report->brand ?? '');
+        $cat            = trim($report->item_type ?? '');
         $reportDesc     = $report->item_description ?? '';
         $reportItemType = $this->extractItemType($reportDesc);
 
         $fCat      = trim($found->item_type ?? '');
-        $fColor    = trim($found->color ?? '');
-        $fBrand    = trim($found->brand ?? '');
         $fDesc     = $found->item_description ?? '';
         $fItemType = $this->extractItemType($fDesc);
 
         if ($cat && $fCat && strcasecmp($cat, $fCat) === 0) {
-            $score += 20;
+            $score += 35;
         }
         if ($reportItemType && $fItemType && strcasecmp($reportItemType, $fItemType) === 0) {
-            $score += 20;
+            $score += 65;
         }
-        if ($color && $fColor && strcasecmp($color, $fColor) === 0) {
-            $score += 20;
-        }
-        if ($brand && $fBrand && strcasecmp($brand, $fBrand) === 0) {
-            $score += 20;
-        }
-        $score += (int) round($this->descriptionSimilarity($reportDesc, $fDesc) * 20);
 
         return $score;
     }

@@ -23,19 +23,21 @@ class ClaimController extends Controller
     /** @var list<string> */
     private const CATEGORIES = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
+        'IDs & Other Identification',
     ];
 
     /** Shorter labels for table column (mockups). */
     private const CATEGORY_SHORT = [
-        'Electronics & Gadgets' => 'Electronics',
-        'Document & Identification' => 'Documents',
-        'Personal Belongings' => 'Personal',
-        'Apparel & Accessories' => 'Apparels',
-        'Miscellaneous' => 'Miscellaneous',
+        'Electronics & Gadgets'    => 'Electronics',
+        'Books & School Supplies'  => 'Books/Supplies',
+        'IDs & Other Identification' => 'IDs',
+        'Personal Belongings'      => 'Personal',
+        'Apparel & Accessories'    => 'Apparels',
+        'Miscellaneous'            => 'Miscellaneous',
     ];
 
     /**
@@ -105,7 +107,7 @@ class ClaimController extends Controller
             'claim_intent',
             'Claim Intent Submitted',
             "Student submitted claim intent for item {$validated['found_item_id']} (ref: {$referenceId}).",
-            $referenceId
+            $foundItem->id
         );
 
         ActivityLog::record(

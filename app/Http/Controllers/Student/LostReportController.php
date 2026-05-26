@@ -29,10 +29,11 @@ class LostReportController extends Controller
     /** @var list<string> */
     private const CATEGORIES = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
+        'IDs & Other Identification',
     ];
 
     /** Must match options in `partials/lost-report-form-fields` document type dropdown. */
@@ -145,11 +146,8 @@ class LostReportController extends Controller
             'student_email'    => 'nullable|email',
             'document_type'    => 'nullable|string|max:120',
         ];
-        if ($request->input('category') === 'Document & Identification') {
+        if ($request->input('category') === 'IDs & Other Identification') {
             $rules['document_type'] = ['required', Rule::in(self::DOCUMENT_TYPES)];
-            if ($request->input('document_type') === 'Other') {
-                $rules['item'] = 'required|string|max:200';
-            }
         }
 
         $validated = $request->validate($rules);
@@ -164,7 +162,7 @@ class LostReportController extends Controller
 
         // Pack metadata into item_description (matches existing parser)
         $desc   = trim($validated['item_description']);
-        if (($validated['category'] ?? '') === 'Document & Identification' && ! empty($validated['document_type'])) {
+        if (($validated['category'] ?? '') === 'IDs & Other Identification' && ! empty($validated['document_type'])) {
             $desc = 'Document Type: ' . $validated['document_type'] . "\n" . $desc;
         }
         $prepend = [];

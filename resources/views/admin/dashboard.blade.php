@@ -31,7 +31,6 @@
       <div class="summary-card">
         <div class="summary-card-text">
           <h3 class="summary-title">Recovered Items</h3>
-          <p class="summary-sub-title">Internal (non-ID)</p>
           <p class="summary-value" data-summary-stat="internal_recovered">{{ number_format($internalRecovered) }}</p>
         </div>
         <div class="summary-icon-wrap unclaimed"><i class="fa-solid fa-box-archive"></i></div>
@@ -42,7 +41,6 @@
       <div class="summary-card">
         <div class="summary-card-text">
           <h3 class="summary-title">Recovered IDs</h3>
-          <p class="summary-sub-title">External (active)</p>
           <p class="summary-value" data-summary-stat="external_ids">{{ number_format($externalIds) }}</p>
         </div>
         <div class="summary-icon-wrap external"><i class="fa-regular fa-id-card"></i></div>
@@ -99,11 +97,12 @@
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Barcode ID</th>
+              <th>Reference ID</th>
               <th>Category</th>
               <th>Found At</th>
               <th>Date Found</th>
               <th>Retention End</th>
+              <th>Timestamp</th>
             </tr>
           </thead>
           <tbody id="dash-tbody-recovered-internal">
@@ -114,9 +113,10 @@
                 <td>{{ $item->found_at ?? '—' }}</td>
                 <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
                 <td>{{ $item->retention_end ?? 'N/A' }}</td>
+                <td>{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—' }}</td>
               </tr>
             @empty
-              <tr><td colspan="5" class="td-empty">No items yet.</td></tr>
+              <tr><td colspan="6" class="td-empty">No items yet.</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -137,11 +137,12 @@
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Barcode ID</th>
+              <th>Reference ID</th>
               <th>Encoded By</th>
               <th>Storage</th>
               <th>Date Surrendered</th>
               <th>Retention End</th>
+              <th>Timestamp</th>
             </tr>
           </thead>
           <tbody id="dash-tbody-recovered-external">
@@ -152,9 +153,10 @@
                 <td>{{ $item->storage_location ?? '—' }}</td>
                 <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
                 <td>{{ $item->retention_end ?? 'N/A' }}</td>
+                <td>{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—' }}</td>
               </tr>
             @empty
-              <tr><td colspan="5" class="td-empty">No items yet.</td></tr>
+              <tr><td colspan="6" class="td-empty">No items yet.</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -166,11 +168,14 @@
   {{-- CENTER: Chart + Unresolved + Verification --}}
   <div class="dashboard-center-col">
 
-    {{-- Chart card --}}
+    {{-- Chart card (5 tabs, single canvas) --}}
     <div class="dash-chart-card">
       <div class="chart-tabs">
-        <button class="chart-tab active" data-chart="pie">Pie Graph</button>
-        <button class="chart-tab" data-chart="bar">Bar Graph</button>
+        <button class="chart-tab active" data-chart="pie">Item Reports (Pie)</button>
+        <button class="chart-tab" data-chart="bar">Item Reports (Bar)</button>
+        <button class="chart-tab" data-chart="source">Lost by Source</button>
+        <button class="chart-tab" data-chart="lostcat">Lost by Category</button>
+        <button class="chart-tab" data-chart="foundcat">Found by Category</button>
       </div>
       <div class="chart-body"><canvas id="statusChart"></canvas></div>
       <p class="chart-caption" id="chartCaption">{{ $pieCaption }}</p>
@@ -228,12 +233,13 @@
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Barcode ID</th>
+              <th>Reference ID</th>
               <th>Category</th>
               <th>Found At</th>
               <th>Retention End</th>
               <th>Storage</th>
               <th>Date Found</th>
+              <th>Timestamp</th>
             </tr>
           </thead>
           <tbody id="dash-tbody-verification">
@@ -245,9 +251,10 @@
                 <td>{{ $item->retention_end ?? 'N/A' }}</td>
                 <td>{{ $item->storage_location ?? '—' }}</td>
                 <td>{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—' }}</td>
+                <td>{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—' }}</td>
               </tr>
             @empty
-              <tr><td colspan="6" class="td-empty">No items for verification.</td></tr>
+              <tr><td colspan="7" class="td-empty">No items for verification.</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -375,15 +382,19 @@
 @push('scripts')
 <script>
 /* Chart data from server (mutable for optional summary polling) */
-window._pieData = @json($pieData);
-window._barData = @json($barData);
-window._pieCaption = @json($pieCaption);
-window._barCaption = @json($barCaption);
+window._pieData       = @json($pieData);
+window._barData       = @json($barData);
+window._pieCaption    = @json($pieCaption);
+window._barCaption    = @json($barCaption);
+window._studentReports  = {{ (int) $studentLostReports }};
+window._adminReports    = {{ (int) $adminLostReports }};
+window._lostByCatData   = @json($lostByCatData);
+window._foundByCatData  = @json($foundByCatData);
 window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
 </script>
 
 <script>
-/* ── Chart (single canvas, tab switching) ─────────────────────────────────── */
+/* ── Charts (single canvas, 5 tabs) ──────────────────────────────────────── */
 (function(){
     var captionEl = document.getElementById('chartCaption');
     var chart;
@@ -399,16 +410,18 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
         return c;
     }
 
+    function noData(caption) {
+        var wrap = document.querySelector('.dash-chart-card .chart-body');
+        if (wrap) wrap.innerHTML = '<p style="text-align:center;color:#9ca3af;font-style:italic;padding:20px;">No data.</p>';
+        if (captionEl) captionEl.textContent = caption || '';
+    }
+
     function makePie() {
         var canvas = ensureCanvas();
         if (!canvas) return;
-        if (chart) chart.destroy();
+        if (chart) { chart.destroy(); chart = null; }
         var pd = window._pieData || [];
-        if (!pd.length) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center;color:#9ca3af;font-style:italic;padding:20px;">No data.</p>';
-            if (captionEl) captionEl.textContent = window._pieCaption || '';
-            return;
-        }
+        if (!pd.length) { noData(window._pieCaption); return; }
         canvas = ensureCanvas();
         if (!canvas) return;
         var pctLookup = {};
@@ -446,33 +459,27 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
         if (captionEl) captionEl.textContent = window._pieCaption || '';
     }
 
-    function makeBar() {
+    function makeHBar(labels, data, colors, caption, tooltipSuffix) {
         var canvas = ensureCanvas();
         if (!canvas) return;
-        if (chart) chart.destroy();
-        var bd = window._barData || [];
-        if (!bd.length) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center;color:#9ca3af;font-style:italic;padding:20px;">No data.</p>';
-            if (captionEl) captionEl.textContent = window._barCaption || '';
-            return;
-        }
+        if (chart) { chart.destroy(); chart = null; }
+        if (!data.length) { noData(caption); return; }
         canvas = ensureCanvas();
         if (!canvas) return;
-        var data = bd.map(function(d){ return d.count || 0; });
         var maxVal = Math.max.apply(null, data.concat([1]));
         var xMax = Math.ceil(maxVal * 1.25) || 10;
         chart = new Chart(canvas.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: bd.map(function(d){ return d.label; }),
-                datasets: [{ data: data, backgroundColor: bd.map(function(d){ return d.color; }), borderWidth: 0, borderRadius: 3, barPercentage: 0.5, categoryPercentage: 0.8 }]
+                labels: labels,
+                datasets: [{ data: data, backgroundColor: colors, borderWidth: 0, borderRadius: 3, barPercentage: 0.5, categoryPercentage: 0.8 }]
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 layout: { padding: { right: 50 } },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: function(c){ var total = c.dataset.data.reduce(function(s,v){return s+(v||0);},0); var pct = total > 0 ? (c.raw/total*100).toFixed(1) : '0'; return ' ' + c.raw + ' items (' + pct + '%)'; } } }
+                    tooltip: { callbacks: { label: function(c){ return ' ' + c.raw + (tooltipSuffix || ''); } } }
                 },
                 scales: {
                     x: { beginAtZero: true, max: xMax,
@@ -495,8 +502,54 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
                 ctx2.restore();
             }}]
         });
-        if (captionEl) captionEl.textContent = window._barCaption || '';
+        if (captionEl) captionEl.textContent = caption || '';
     }
+
+    function makeBar() {
+        var bd = window._barData || [];
+        var total = bd.reduce(function(s,d){ return s+(d.count||0); }, 0);
+        makeHBar(
+            bd.map(function(d){ return d.label; }),
+            bd.map(function(d){ return d.count || 0; }),
+            bd.map(function(d){ return d.color; }),
+            window._barCaption || '',
+            ' items'
+        );
+    }
+
+    function makeLostBySource() {
+        var s = window._studentReports || 0, a = window._adminReports || 0;
+        var caption = (s + a) > 0
+            ? ((s > a ? 'Student portal' : 'Admin-encoded') + ' reports are higher (' + Math.max(s,a) + ' vs ' + Math.min(s,a) + ').')
+            : 'No report data yet.';
+        makeHBar(['Student Portal', 'Admin Encoded'], [s, a], ['#1976d2', '#8b0000'], caption, ' report(s)');
+    }
+
+    function makeLostByCat() {
+        var bd = window._lostByCatData || [];
+        var caption = bd.length ? 'Lost reports by item category.' : 'No data.';
+        makeHBar(
+            bd.map(function(d){ return d.label; }),
+            bd.map(function(d){ return d.count || 0; }),
+            bd.map(function(d){ return d.color; }),
+            caption,
+            ' report(s)'
+        );
+    }
+
+    function makeFoundByCat() {
+        var bd = window._foundByCatData || [];
+        var caption = bd.length ? 'Found items by item category.' : 'No data.';
+        makeHBar(
+            bd.map(function(d){ return d.label; }),
+            bd.map(function(d){ return d.count || 0; }),
+            bd.map(function(d){ return d.color; }),
+            caption,
+            ' item(s)'
+        );
+    }
+
+    var chartDispatch = { pie: makePie, bar: makeBar, source: makeLostBySource, lostcat: makeLostByCat, foundcat: makeFoundByCat };
 
     makePie();
 
@@ -504,14 +557,16 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
         btn.addEventListener('click', function(){
             document.querySelectorAll('.chart-tab').forEach(function(b){ b.classList.remove('active'); });
             btn.classList.add('active');
-            btn.getAttribute('data-chart') === 'bar' ? makeBar() : makePie();
+            var fn = chartDispatch[btn.getAttribute('data-chart')];
+            if (fn) fn();
         });
     });
 
     window.refreshDashboardCharts = function() {
-        var activeBar = document.querySelector('.chart-tab[data-chart="bar"].active');
-        if (activeBar) makeBar();
-        else makePie();
+        var active = document.querySelector('.chart-tab.active');
+        var key = active ? active.getAttribute('data-chart') : 'pie';
+        var fn = chartDispatch[key];
+        if (fn) fn();
     };
 })();
 </script>
@@ -527,17 +582,17 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
     function renderRecoveredInternal(rows) {
         var tb = document.getElementById('dash-tbody-recovered-internal');
         if (!tb) return;
-        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="5" class="td-empty">No items yet.</td></tr>'; return; }
+        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="6" class="td-empty">No items yet.</td></tr>'; return; }
         tb.innerHTML = rows.map(function(r){
-            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.item_type)+'</td><td>'+esc(r.found_at)+'</td><td>'+esc(r.date_encoded)+'</td><td>'+esc(r.retention_end)+'</td></tr>';
+            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.item_type)+'</td><td>'+esc(r.found_at)+'</td><td>'+esc(r.date_encoded)+'</td><td>'+esc(r.retention_end)+'</td><td>'+esc(r.created_at)+'</td></tr>';
         }).join('');
     }
     function renderRecoveredExternal(rows) {
         var tb = document.getElementById('dash-tbody-recovered-external');
         if (!tb) return;
-        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="5" class="td-empty">No items yet.</td></tr>'; return; }
+        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="6" class="td-empty">No items yet.</td></tr>'; return; }
         tb.innerHTML = rows.map(function(r){
-            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.found_by)+'</td><td>'+esc(r.storage_location)+'</td><td>'+esc(r.date_encoded)+'</td><td>'+esc(r.retention_end)+'</td></tr>';
+            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.found_by)+'</td><td>'+esc(r.storage_location)+'</td><td>'+esc(r.date_encoded)+'</td><td>'+esc(r.retention_end)+'</td><td>'+esc(r.created_at)+'</td></tr>';
         }).join('');
     }
     function renderUnresolved(rows) {
@@ -553,9 +608,9 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
     function renderVerification(rows) {
         var tb = document.getElementById('dash-tbody-verification');
         if (!tb) return;
-        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="6" class="td-empty">No items for verification.</td></tr>'; return; }
+        if (!rows || !rows.length) { tb.innerHTML = '<tr><td colspan="7" class="td-empty">No items for verification.</td></tr>'; return; }
         tb.innerHTML = rows.map(function(r){
-            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.item_type)+'</td><td>'+esc(r.found_at)+'</td><td>'+esc(r.retention_end)+'</td><td>'+esc(r.storage_location)+'</td><td>'+esc(r.date_encoded)+'</td></tr>';
+            return '<tr><td>'+linkId(r.id)+'</td><td>'+esc(r.item_type)+'</td><td>'+esc(r.found_at)+'</td><td>'+esc(r.retention_end)+'</td><td>'+esc(r.storage_location)+'</td><td>'+esc(r.date_encoded)+'</td><td>'+esc(r.created_at)+'</td></tr>';
         }).join('');
     }
     function fmtActivityTime(iso) {
@@ -598,10 +653,14 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
             if (k === 'unresolved') el.textContent = fmt(json.unresolved);
             if (k === 'for_verification') el.textContent = fmt(json.for_verification);
         });
-        window._pieData = json.pie_data || [];
-        window._barData = json.bar_data || [];
-        window._pieCaption = json.pie_caption || '';
-        window._barCaption = json.bar_caption || '';
+        window._pieData        = json.pie_data || [];
+        window._barData        = json.bar_data || [];
+        window._pieCaption     = json.pie_caption || '';
+        window._barCaption     = json.bar_caption || '';
+        window._studentReports = json.student_reports || 0;
+        window._adminReports   = json.admin_reports || 0;
+        window._lostByCatData  = json.lost_by_cat_data || [];
+        window._foundByCatData = json.found_by_cat_data || [];
         if (typeof window.refreshDashboardCharts === 'function') window.refreshDashboardCharts();
         renderRecoveredInternal(json.recovered_internal);
         renderRecoveredExternal(json.recovered_external);
@@ -662,7 +721,6 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
 
     var encodeModal = document.getElementById('itemLostReportModal');
     var successOverlay = document.getElementById('encodeSuccessOverlay');
-    var dupModal = document.getElementById('barcodeDupModal');
     var todayStr = new Date().toISOString().split('T')[0];
 
     function escRev(s) {
@@ -678,7 +736,7 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
             img = '<div style="margin-bottom:8px;"><span style="font-weight:600;display:block;margin-bottom:4px;">Photo</span><img src="' + escRev(_encItemPhoto) + '" alt="" style="max-width:200px;border-radius:8px;border:1px solid #e5e7eb;"></div>';
         }
         return [
-            rowRev('Barcode ID', (document.getElementById('encBarcodeId') || {}).value),
+            rowRev('Reference ID', (document.getElementById('encBarcodeId') || {}).value),
             rowRev('Category', (document.getElementById('encCategory') || {}).value),
             rowRev('Item', (document.getElementById('encItem') || {}).value),
             rowRev('Color', (document.getElementById('encColor') || {}).value),
@@ -726,25 +784,6 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
         showEncodeBanner('');
     }
 
-    window.openBarcodeDupModal = function(msg){
-        var t = document.getElementById('barcodeDupModalText');
-        if (t) t.textContent = msg || '';
-        if (dupModal) {
-            dupModal.classList.add('open');
-            dupModal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-        }
-    };
-    window.closeBarcodeDupModal = function(){
-        if (dupModal) {
-            dupModal.classList.remove('open');
-            dupModal.setAttribute('aria-hidden', 'true');
-        }
-        var enc = document.getElementById('itemLostReportModal');
-        if (enc && enc.classList.contains('report-modal-open')) document.body.style.overflow = 'hidden';
-        else document.body.style.overflow = '';
-    };
-
     window.openEncodeModal = function(e) {
         if (e) e.preventDefault();
         var form = document.getElementById('encodeItemForm');
@@ -776,9 +815,6 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
             if (e.target === successOverlay) cancelEncodeSuccess();
         });
     }
-    var dupOk = document.getElementById('barcodeDupModalOk');
-    if (dupOk) dupOk.addEventListener('click', function() { window.closeBarcodeDupModal(); });
-
     document.addEventListener('keydown', function(e) {
         if (e.key !== 'Escape') return;
         var arm = document.getElementById('adminEncodeReviewModal');
@@ -788,7 +824,6 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
             if (typeof ob === 'function') ob();
             return;
         }
-        if (dupModal && dupModal.classList.contains('open')) { window.closeBarcodeDupModal(); return; }
         if (encodeModal && encodeModal.classList.contains('report-modal-open')) { closeEncodeModal(); return; }
         if (successOverlay && successOverlay.style.display === 'flex') cancelEncodeSuccess();
     });
@@ -873,13 +908,13 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
                         title: 'Success',
                         message: msg,
                         ticketId: payload.barcode_id,
-                        ticketDisplay: 'Barcode ID: ' + payload.barcode_id,
+                        ticketDisplay: 'Reference ID: ' + payload.barcode_id,
                         onClose: function () { location.reload(); }
                     });
                 } else {
                     document.getElementById('encodeSuccessHeading').textContent = 'Success';
                     document.getElementById('encodeSuccessMsg').textContent = 'Item has been encoded successfully!';
-                    document.getElementById('encodeSuccessBid').textContent = 'Barcode ID: ' + payload.barcode_id;
+                    document.getElementById('encodeSuccessBid').textContent = 'Reference ID: ' + payload.barcode_id;
                     window._encodedBarcodeId = payload.barcode_id;
                     var notice = document.getElementById('encodeTicketNotice');
                     var autoBody = document.getElementById('encodeAutoMatchBody');
@@ -918,7 +953,7 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
             var item = document.getElementById('encItem').value.trim();
             var col = (document.getElementById('encColor') || {}).value || '';
             var desc = document.getElementById('encDescription').value.trim();
-            if (!barcode) { showEncodeBanner('Barcode ID is required.'); document.getElementById('encBarcodeId').focus(); return; }
+            if (!barcode) { showEncodeBanner('Reference ID is required.'); document.getElementById('encBarcodeId').focus(); return; }
             if (!item) { showEncodeBanner('Item is required.'); document.getElementById('encItem').focus(); return; }
             if (!col) { showEncodeBanner('Color is required.'); document.getElementById('encColor').focus(); return; }
             if (!desc) { showEncodeBanner('Item Description is required.'); document.getElementById('encDescription').focus(); return; }
@@ -938,7 +973,7 @@ window._DASHBOARD_SUMMARY_URL = @json(route('admin.dashboard.summary'));
                         var msg = n >= 1
                             ? 'This barcode is already registered. It has ' + n + ' linked lost report(s). You cannot register a duplicate found item with the same ID.'
                             : 'This barcode is already in use. You cannot register a duplicate found item.';
-                        window.openBarcodeDupModal(msg);
+                        showEncodeBanner(msg);
                         return;
                     }
                     btn.disabled = false;

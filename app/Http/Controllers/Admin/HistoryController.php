@@ -26,7 +26,7 @@ class HistoryController extends Controller
         $allClaimed = Item::foundItems()
             ->where(function ($q) {
                 $q->whereNull('item_type')
-                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+                    ->orWhereNotIn('item_type', ['ID & Nameplate', 'Unclaimed IDs']);
             })
             ->whereIn('status', ['Claimed', 'Disposed'])
             ->when($categoryFilter, fn ($q) => $q->where('item_type', $categoryFilter))
@@ -35,9 +35,9 @@ class HistoryController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        // External: Recovered IDs bucket (guest IDs + Document & Identification encodes)
+        // External: Recovered IDs bucket (guest IDs + Unclaimed IDs encodes)
         $guestClaimed = Item::foundItems()
-            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
+            ->whereIn('item_type', ['ID & Nameplate', 'Unclaimed IDs'])
             ->whereIn('status', ['Claimed', 'Disposed'])
             ->when($dateRange['from'], fn ($q) => $q->where('updated_at', '>=', $dateRange['from']))
             ->when($dateRange['to'], fn ($q) => $q->where('updated_at', '<=', $dateRange['to']))

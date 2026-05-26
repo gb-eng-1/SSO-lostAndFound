@@ -66,9 +66,6 @@ Route::prefix('admin')->middleware('admin.auth')->group(function () {
     Route::get('/found-items/barcode-context', [FoundItemController::class, 'barcodeContext'])->name('admin.found.barcode-context');
     Route::post('/found-items',             [FoundItemController::class, 'store']);
     Route::post('/found-items/lost-report', [FoundItemController::class, 'storeLostReport'])->name('admin.found.lost-report');
-    Route::delete('/found-items/{id}', [FoundItemController::class, 'destroy'])->name('admin.found.destroy');
-    // POST fallback for environments that block DELETE on web server
-    Route::post('/found-items/{id}/cancel', [FoundItemController::class, 'destroy'])->name('admin.found.cancel');
 
     // Guest items (ID surrenders)
     Route::post('/found-items/guest', [GuestItemController::class, 'store'])->name('admin.found.guest');
@@ -85,18 +82,19 @@ Route::prefix('admin')->middleware('admin.auth')->group(function () {
 
     // Lost reports (admin)
     Route::get('/reports', [ReportsController::class, 'index'])->name('admin.reports');
-    Route::post('/reports/{id}/cancel', [ReportsController::class, 'cancel'])->name('admin.reports.cancel');
 
     // Export (per-table)
     Route::get('/export/internal',     [ExportController::class, 'internalItems'])->name('admin.export.internal');
     Route::get('/export/external',     [ExportController::class, 'externalIds'])->name('admin.export.external');
     Route::get('/export/claimants',    [ExportController::class, 'unresolvedClaimants'])->name('admin.export.claimants');
     Route::get('/export/verification', [ExportController::class, 'forVerification'])->name('admin.export.verification');
+    Route::get('/export/archive',      [ExportController::class, 'archiveSchoolYear'])->name('admin.export.archive');
 
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'index'])->name('admin.inventory');
     Route::get('/inventory/item-detail/{id}', [InventoryController::class, 'itemDetail'])->name('admin.inventory.item-detail');
     Route::post('/inventory/confirm/{id}', [InventoryController::class, 'confirm'])->name('admin.inventory.confirm');
+    Route::post('/inventory/dispose/{id}', [InventoryController::class, 'dispose'])->name('admin.inventory.dispose');
 
     // Notifications
     Route::get('/notifications',              [AdminNotificationController::class, 'index'])->name('admin.notifications');

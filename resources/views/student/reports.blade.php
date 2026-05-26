@@ -22,20 +22,31 @@
         <i class="fa-solid fa-plus"></i> Report Lost Item
       </button>
     </div>
-    <form method="get" action="{{ route('student.reports') }}" class="browse-filter-form">
-      @if($filter === 'matched')
-        <input type="hidden" name="filter" value="matched">
-      @endif
+    <div class="browse-filter-form">
       <div class="browse-filter-filters">
-        <label class="sr-only" for="browseCategoryFilter">Filter by category</label>
-        <select name="category" id="browseCategoryFilter" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
-          <option value="">Filter By Category</option>
-          @foreach($categories as $cat)
-            <option value="{{ $cat }}" {{ ($categoryFilter ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-          @endforeach
+        <form method="get" action="{{ route('student.reports') }}" style="display:contents;">
+          @if($filter === 'matched')
+            <input type="hidden" name="filter" value="matched">
+          @endif
+          <label class="sr-only" for="browseCategoryFilter">Filter by category</label>
+          <select name="category" id="browseCategoryFilter" class="found-filter-select browse-filter-select" onchange="this.form.submit()">
+            <option value="">Filter By Category</option>
+            @foreach($categories as $cat)
+              <option value="{{ $cat }}" {{ ($categoryFilter ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+            @endforeach
+          </select>
+        </form>
+        <label class="sr-only" for="studentReportsDateFilter">Filter by date</label>
+        <select id="studentReportsDateFilter" class="found-filter-select browse-filter-select" aria-label="Filter by date">
+          <option value="">Filter By Date</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="3months">Last 3 Months</option>
+          <option value="year">This Year</option>
         </select>
       </div>
-    </form>
+    </div>
   </div>
 
   @if($filter === 'matched')
@@ -45,7 +56,7 @@
         <table class="reports-data-table reports-browse-table">
           <thead>
             <tr>
-              <th>Barcode ID</th>
+              <th>Reference ID</th>
               <th>Category</th>
               <th>Found At</th>
               <th>Date Found</th>
@@ -67,7 +78,7 @@
                 }
                 $retEnd = $found ? $found->retentionEndDate() : null;
               @endphp
-              <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}">
+              <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}" data-date-encoded="{{ $found && $found->date_encoded ? $found->date_encoded->format('Y-m-d') : '' }}">
                 <td><strong>{{ $found?->id ?? '—' }}</strong></td>
                 <td>{{ $found?->item_type ?? '—' }}</td>
                 <td>{{ $found?->found_at ?? '—' }}</td>
@@ -132,7 +143,7 @@
                     }
                 }
               @endphp
-              <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}">
+              <tr class="{{ $loop->iteration % 2 === 1 ? 'reports-row-alt' : '' }}" data-date-lost="{{ $report->date_lost ? $report->date_lost->format('Y-m-d') : '' }}">
                 <td><strong>{{ $report->display_ticket_id }}</strong></td>
                 <td>{{ $report->item_type ?? '—' }}</td>
                 <td>{{ $report->parsed_department ?? '—' }}</td>
@@ -366,6 +377,38 @@
 
     lastHash = hashPayload(window.STUDENT_MATCH_PAIRS || []);
     setInterval(poll, 15000);
+  })();
+  </script>
+  <script>
+  // ── Date filter (client-side) ───────────────────────────────────────────
+  (function(){
+    var sel = document.getElementById('studentReportsDateFilter');
+    if(!sel) return;
+    var isMatched = {{ $filter === 'matched' ? 'true' : 'false' }};
+    var dateAttr  = isMatched ? 'data-date-encoded' : 'data-date-lost';
+    function applyDate(){
+      var val = sel.value;
+      var now = new Date();
+      var todayStr  = now.toISOString().slice(0,10);
+      var weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+      var weekStr   = weekStart.toISOString().slice(0,10);
+      var monthStr  = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+      var m3Str     = new Date(now.getFullYear(),now.getMonth()-3,now.getDate()).toISOString().slice(0,10);
+      var yearStr   = new Date(now.getFullYear(),0,1).toISOString().slice(0,10);
+      document.querySelectorAll('.reports-browse-table tbody tr['+dateAttr+']').forEach(function(r){
+        if(r.querySelector('td[colspan]')) return;
+        if(!val){ r.style.display=''; return; }
+        var d = r.getAttribute(dateAttr)||'';
+        var show = true;
+        if(val==='today')   show = d===todayStr;
+        if(val==='week')    show = d>=weekStr && d<=todayStr;
+        if(val==='month')   show = d>=monthStr && d<=todayStr;
+        if(val==='3months') show = d>=m3Str && d<=todayStr;
+        if(val==='year')    show = d>=yearStr && d<=todayStr;
+        r.style.display = show?'':'none';
+      });
+    }
+    sel.addEventListener('change', applyDate);
   })();
   </script>
 @endpush

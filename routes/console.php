@@ -11,3 +11,6 @@ Artisan::command('inspire', function () {
 // Run auto-matching every 15 minutes as a scheduled backup.
 // Event-driven matching is the primary trigger (after encode / lost-report create).
 Schedule::command('matches:run')->everyFifteenMinutes();
+
+// Remind admin to archive records each school year on May 15 (school year ends May 31).
+Schedule::command('app:archive-reminder')->yearlyOn(5, 15, '08:00');

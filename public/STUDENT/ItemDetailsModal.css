@@ -1,4 +1,23 @@
 /* Item Details Modal Styles */
+
+/* Universal rounded info card */
+.idm-info-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+/* Hide scrollbars in item detail modal body */
+.item-details-body,
+.item-details-right {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.item-details-body::-webkit-scrollbar,
+.item-details-right::-webkit-scrollbar { display: none; }
+
 .item-details-overlay {
   display: none;
   position: fixed;

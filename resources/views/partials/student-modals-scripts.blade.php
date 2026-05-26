@@ -83,7 +83,7 @@
       rows.push('<div class="srm-form-row" style="margin-bottom:8px;"><span style="min-width:150px;font-weight:600;color:#374151;">'+esc(label)+'</span><span style="flex:1;color:#111827;">'+esc(String(v))+'</span></div>');
     }
     add('Category', 'category');
-    if((payload.category || '') === 'Document & Identification') add('Document Type', 'document_type');
+    if((payload.category || '') === 'IDs & Other Identification') add('Document Type', 'document_type');
     add('Full Name', 'full_name');
     add('Contact Number', 'contact_number');
     add('Department', 'department');
@@ -342,7 +342,7 @@
 
   var rc = document.getElementById('reportCategory');
   if(rc) rc.addEventListener('change', function(){
-    var isDoc = this.value === 'Document & Identification';
+    var isDoc = this.value === 'IDs & Other Identification';
     var row = document.getElementById('reportDocTypeRow');
     if(row) row.style.display = isDoc ? 'grid' : 'none';
     var elecHint = document.getElementById('srmElecHint');
@@ -360,30 +360,16 @@
     }
   });
 
-  var rdt = document.getElementById('reportDocType');
-  if(rdt) rdt.addEventListener('change', function(){
-    var isOther = this.value === 'Other';
-    var itemRow = document.getElementById('srmItemRow');
-    var lbl     = document.getElementById('srmItemLabel');
-    if(itemRow) itemRow.style.display = isOther ? '' : 'none';
-    if(lbl)     lbl.textContent       = isOther ? 'Specify' : 'Item';
-  });
-
   var rf = document.getElementById('reportForm');
   if(rf) rf.addEventListener('submit', function(e){
     e.preventDefault();
     var fd = new FormData(this);
     var payload = Object.fromEntries(fd.entries());
-    if((payload.category || '') === 'Document & Identification'){
-      var dt = (payload.document_type || '').trim();
-      if(!dt){
-        if(typeof window.appUiAlert === 'function') window.appUiAlert('Please select the type of identification.');
-        else alert('Please select the type of identification.');
-        return;
-      }
-      if(dt === 'Other' && !(payload.item || '').trim()){
-        if(typeof window.appUiAlert === 'function') window.appUiAlert('Please specify the document type.');
-        else alert('Please specify the document type.');
+    if((payload.category || '') === 'IDs & Other Identification'){
+      if(!(payload.document_type || '').trim()){
+        var rdtEl = document.getElementById('reportDocType');
+        if(rdtEl) rdtEl.focus();
+        alert('Please select a Document Type.');
         return;
       }
     }

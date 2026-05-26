@@ -8,10 +8,11 @@
   $isAdmin = ($variant ?? 'student') === 'admin';
   $categoriesList = $categories ?? [
     'Electronics & Gadgets',
-    'Document & Identification',
+    'Books & School Supplies',
     'Personal Belongings',
     'Apparel & Accessories',
     'Miscellaneous',
+    'IDs & Other Identification',
   ];
   $idCat = $isAdmin ? 'repCategory' : 'reportCategory';
   $idDocRow = $isAdmin ? 'repDocTypeRow' : 'reportDocTypeRow';
@@ -58,32 +59,7 @@
   </div>
 @endif
 
-{{-- Admin: Category is first; Student: Category comes after ID --}}
-@if($isAdmin)
-<div class="{{ $formRowClass }}">
-  <label class="{{ $labelClass }}" for="{{ $idCat }}">Category</label>
-  <div class="{{ $fieldWrapClass }}">
-    <select id="{{ $idCat }}" name="category" class="report-input report-select">
-      <option value="">— Select —</option>
-      @foreach($categoriesList as $cat)
-        <option value="{{ $cat }}">{{ $cat }}</option>
-      @endforeach
-    </select>
-  </div>
-</div>
-
-<div id="{{ $idDocRow }}" style="display:none;" class="{{ $formRowClass }}">
-  <label class="{{ $labelClass }}" for="{{ $idDocType }}">Document Type</label>
-  <div class="{{ $fieldWrapClass }}">
-    <select id="{{ $idDocType }}" name="document_type" class="report-input report-select">
-      <option value="">— Select Document Type —</option>
-      @foreach($documentTypeOptions as $docType)
-        <option value="{{ $docType }}">{{ $docType }}</option>
-      @endforeach
-    </select>
-  </div>
-</div>
-@endif
+{{-- Category and Document Type moved below the divider (see block below) --}}
 
 <div class="{{ $formRowClass }}">
   @if($isAdmin)
@@ -133,31 +109,56 @@
   @endif
 </div>
 
-{{-- Student: Category + Document Type come after ID --}}
-@if(!$isAdmin)
+{{-- Category + Doc Type below divider for ALL variants --}}
 <hr class="form-section-divider">
+
 <div class="{{ $formRowClass }}">
-  <label for="{{ $idCat }}">Category</label>
-  <select id="{{ $idCat }}" name="category" class="{{ $formControlClass }}">
-    <option value="">Select Category</option>
-    @foreach($categoriesList as $cat)
-      <option value="{{ $cat }}">{{ $cat }}</option>
-    @endforeach
-  </select>
+  @if($isAdmin)
+    <label class="{{ $labelClass }}" for="{{ $idCat }}">Category</label>
+    <div class="{{ $fieldWrapClass }}">
+      <select id="{{ $idCat }}" name="category" class="report-input report-select">
+        <option value="" disabled selected hidden>— Select —</option>
+        @foreach($categoriesList as $cat)
+          <option value="{{ $cat }}">{{ $cat }}</option>
+        @endforeach
+      </select>
+    </div>
+  @else
+    <label for="{{ $idCat }}">Category</label>
+    <select id="{{ $idCat }}" name="category" class="{{ $formControlClass }}">
+      <option value="" disabled selected hidden>Select Category</option>
+      @foreach($categoriesList as $cat)
+        <option value="{{ $cat }}">{{ $cat }}</option>
+      @endforeach
+    </select>
+  @endif
 </div>
 
 <div id="{{ $idDocRow }}" style="display:none;" class="{{ $formRowClass }}">
-  <label for="{{ $idDocType }}">Document Type</label>
-  <select id="{{ $idDocType }}" name="document_type" class="{{ $formControlClass }}">
-    <option value="">Select Document Type</option>
-    @foreach($documentTypeOptions as $docType)
-      <option value="{{ $docType }}">{{ $docType }}</option>
-    @endforeach
-  </select>
+  @if($isAdmin)
+    <label class="{{ $labelClass }}" for="{{ $idDocType }}">Document Type <span class="report-required">*</span></label>
+    <div class="{{ $fieldWrapClass }}">
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;margin:-4px 0;">
+        <select id="{{ $idDocType }}" name="document_type" class="report-input report-select">
+          <option value="" disabled selected hidden>— Select Document Type —</option>
+          @foreach($documentTypeOptions as $docType)
+            <option value="{{ $docType }}">{{ $docType }}</option>
+          @endforeach
+        </select>
+      </div>
+    </div>
+  @else
+    <label for="{{ $idDocType }}">Document Type <span class="srm-req">*</span></label>
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;width:100%;">
+      <select id="{{ $idDocType }}" name="document_type" class="{{ $formControlClass }}" style="width:100%;">
+        <option value="" disabled selected hidden>Select Document Type</option>
+        @foreach($documentTypeOptions as $docType)
+          <option value="{{ $docType }}">{{ $docType }}</option>
+        @endforeach
+      </select>
+    </div>
+  @endif
 </div>
-@else
-<hr class="form-section-divider">
-@endif
 
 <div class="{{ $formRowClass }}" id="{{ $idItemRow }}">
   @if($isAdmin)
@@ -203,7 +204,7 @@
     <label class="{{ $labelClass }}" for="{{ $idColor }}">Color</label>
     <div class="{{ $fieldWrapClass }}">
       <select id="{{ $idColor }}" name="color" class="report-input report-select">
-        <option value="">— Select —</option>
+        <option value="" disabled selected hidden>— Select —</option>
         @foreach(['Red','Orange','Yellow','Green','Blue','Violet','Black','White','Brown','Rainbow','Multi','Other'] as $color)
           <option value="{{ $color }}">{{ $color }}</option>
         @endforeach
@@ -212,7 +213,7 @@
   @else
     <label for="{{ $idColor }}">Color</label>
     <select id="{{ $idColor }}" name="color" class="{{ $formControlClass }}">
-      <option value="">Select Color</option>
+      <option value="" disabled selected hidden>Select Color</option>
       @foreach(['Red','Orange','Yellow','Green','Blue','Violet','Black','White','Brown','Rainbow','Multi','Other'] as $color)
         <option value="{{ $color }}">{{ $color }}</option>
       @endforeach

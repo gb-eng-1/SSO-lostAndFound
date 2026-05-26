@@ -19,7 +19,7 @@ class InventoryController extends Controller
 
     private const CATEGORIES = [
         'Electronics & Gadgets',
-        'Document & Identification',
+        'Books & School Supplies',
         'Personal Belongings',
         'Apparel & Accessories',
         'Miscellaneous',
@@ -34,14 +34,14 @@ class InventoryController extends Controller
         $items = Item::foundItems()
             ->where(function ($q) {
                 $q->whereNull('item_type')
-                  ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+                  ->orWhereNotIn('item_type', ['ID & Nameplate', 'Unclaimed IDs']);
             })
             ->where('status', 'Unclaimed Items')
             ->when($category, fn ($q) => $q->where('item_type', $category))
-            ->when($expired,  fn ($q) => $q->whereDate('date_encoded', '<=', now()->subYears(self::INTERNAL_RETENTION_YEARS)))
             ->orderByDesc('date_encoded')
             ->get()
-            ->map(fn ($item) => $this->attachRetention($item));
+            ->map(fn ($item) => $this->attachRetention($item))
+            ->when($expired, fn ($col) => $col->where('is_overdue', true));
 
         $overdueCount = $items->where('is_overdue', true)->count();
 
@@ -65,20 +65,6 @@ class InventoryController extends Controller
         $parsed = $item->parseDescription();
 
         // Find unmatched lost reports with the same item_type as potential claimants
-        $claimants = Item::lostReports()
-            ->whereNotIn('status', ['Claimed', 'Resolved', 'Cancelled', 'Disposed'])
-            ->whereNull('matched_barcode_id')
-            ->when($item->item_type, fn ($q) => $q->where('item_type', $item->item_type))
-            ->orderByDesc('date_lost')
-            ->limit(20)
-            ->get()
-            ->map(fn ($report) => [
-                'id'    => $report->id,
-                'email' => $report->user_id ?? '',
-            ])
-            ->filter(fn ($c) => $c['email'] !== '')
-            ->values();
-
         // Strip embedded metadata lines from description to get the free-text portion
         $rawDesc    = $item->item_description ?? '';
         $metaKeys   = ['Student Number', 'Full Name', 'Contact', 'Department', 'Item Type',
@@ -98,6 +84,8 @@ class InventoryController extends Controller
         }
         $itemDescription = trim(implode("\n", $cleanLines));
 
+        $itemWithRetention = $this->attachRetention($item);
+
         return response()->json([
             'ok'               => true,
             'id'               => $item->id,
@@ -112,7 +100,7 @@ class InventoryController extends Controller
             'encoded_by'       => $parsed['Encoded By'] ?? '',
             'date_found'       => $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '',
             'image_data'       => $item->image_data ?? null,
-            'claimants'        => $claimants,
+            'is_overdue'       => $itemWithRetention->is_overdue ?? false,
         ]);
     }
 
@@ -188,11 +176,39 @@ class InventoryController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /** POST /admin/inventory/dispose/{id} — AJAX: mark an expired item as Disposed */
+    public function dispose(string $id): JsonResponse
+    {
+        $item = Item::foundItems()->where('id', $id)->where('status', 'Unclaimed Items')->first();
+
+        if (!$item) {
+            return response()->json(['ok' => false, 'error' => 'Item not found or already processed.'], 404);
+        }
+
+        $item->update(['status' => 'Disposed']);
+
+        ActivityLog::record(
+            'disposed',
+            $item->id,
+            'Disposed via inventory panel',
+            session('admin_id'),
+            'admin'
+        );
+
+        Notification::notifyAdmin(
+            'item_disposed',
+            'Item Disposed',
+            "Found item {$item->id} has been disposed from the inventory.",
+            $item->id
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
     private function attachRetention(Item $item): Item
     {
-        $base = $item->date_encoded ?? $item->created_at;
-        if ($base) {
-            $retentionEnd = Carbon::parse($base)->addYears(self::INTERNAL_RETENTION_YEARS);
+        $retentionEnd = $item->retentionEndDate();
+        if ($retentionEnd) {
             $item->retention_end      = $retentionEnd->toDateString();
             $item->is_overdue         = $retentionEnd->isPast();
             $item->expires_in_30_days = !$item->is_overdue && $retentionEnd->isFuture() && now()->diffInDays($retentionEnd, false) <= 30;

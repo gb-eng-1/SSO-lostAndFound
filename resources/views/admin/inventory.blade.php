@@ -24,13 +24,8 @@
 .idm-info-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6;}
 .idm-info-row:last-child{border-bottom:none;}
 .idm-info-label{font-size:12px;color:#6b7280;min-width:120px;flex-shrink:0;}
-.idm-info-value{font-size:12px;font-weight:700;color:#111827;text-align:right;flex:1;}
-.idm-claimants{padding:16px 24px;border-top:1px solid #e5e7eb;}
-.idm-claimants-title{font-size:14px;font-weight:700;color:#111827;margin:0 0 12px;text-align:center;}
-.idm-claimants-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;}
-.idm-claimant-row{display:flex;align-items:center;gap:8px;}
-.idm-claimant-radio{width:14px;height:14px;accent-color:#8b0000;cursor:pointer;flex-shrink:0;}
-.idm-claimant-label{font-size:13px;color:#374151;cursor:pointer;}
+.idm-info-value{font-size:12px;font-weight:700;color:#111827;text-align:left;flex:1;}
+.idm-info-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
 .idm-no-claimants{font-size:13px;color:#6b7280;text-align:center;padding:8px 0;}
 .idm-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid #e5e7eb;flex-shrink:0;}
 .idm-btn-cancel{padding:9px 22px;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
@@ -38,6 +33,9 @@
 .idm-btn-confirm{padding:9px 22px;border:none;border-radius:7px;background:#8b0000;color:#fff;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;}
 .idm-btn-confirm:hover{opacity:.88;}
 .idm-btn-confirm:disabled{opacity:.45;cursor:not-allowed;}
+.idm-btn-dispose{padding:9px 22px;border:none;border-radius:7px;background:#dc2626;color:#fff;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.idm-btn-dispose:hover{opacity:.88;}
+.idm-btn-dispose:disabled{opacity:.45;cursor:not-allowed;}
 @media(max-width:560px){.idm-body{flex-direction:column;}.idm-left{width:100%;border-right:none;border-bottom:1px solid #e5e7eb;}.idm-claimants-grid{grid-template-columns:1fr;}}
 
 /* ── Success overlay ────────────────────────────────────────────── */
@@ -75,10 +73,10 @@
   </div>
 
   {{-- ── Filter bar ─────────────────────────────────────────────────────────── --}}
-  <form method="GET" action="{{ route('admin.inventory') }}">
-    <div class="browse-toolbar" style="margin-bottom:16px;">
-      <div class="browse-filter-form">
-        <div class="browse-filter-filters">
+  <div class="browse-toolbar" style="margin-bottom:16px;">
+    <div class="browse-filter-form">
+      <div class="browse-filter-filters" style="flex-wrap:wrap;">
+        <form method="GET" action="{{ route('admin.inventory') }}" style="display:contents;">
           <label class="sr-only" for="invCategoryFilter">Filter by category</label>
           <select id="invCategoryFilter" name="category" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by category">
             <option value="" {{ !$category ? 'selected' : '' }}>Filter By Category</option>
@@ -92,10 +90,19 @@
             <option value="1" {{ $expired ? 'selected' : '' }}>Expired Items</option>
           </select>
           <button type="submit" class="found-btn" style="background:#374151;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;">Apply</button>
-        </div>
+        </form>
+        <label class="sr-only" for="invDateFilter">Filter by date found</label>
+        <select id="invDateFilter" class="found-filter-select browse-filter-select matched-filter-select" aria-label="Filter by date found">
+          <option value="">Filter By Date Found</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="3months">Last 3 Months</option>
+          <option value="year">This Year</option>
+        </select>
       </div>
     </div>
-  </form>
+  </div>
 
   {{-- ── Overdue retention alert ─────────────────────────────────────────────── --}}
   @if($overdueCount > 0)
@@ -104,7 +111,7 @@
       <span style="font-size:13px;color:#991b1b;flex:1;">
         There are <strong>{{ $overdueCount }}</strong> item(s) that have exceeded the retention policy.
       </span>
-      <a href="#" style="font-size:12px;font-weight:700;color:#dc2626;text-decoration:underline;">Dispose Items</a>
+      <a href="{{ route('admin.inventory') }}?expired=1" style="font-size:12px;font-weight:700;color:#dc2626;text-decoration:underline;">Dispose Items</a>
     </div>
   @endif
 
@@ -118,7 +125,7 @@
       <table class="matched-reports-table">
         <thead>
           <tr>
-            <th>Barcode ID</th>
+            <th>Reference ID</th>
             <th>Category</th>
             <th>Found At</th>
             <th>Date Found</th>
@@ -130,7 +137,7 @@
         </thead>
         <tbody>
           @forelse($items as $item)
-            <tr class="{{ ($item->is_overdue ?? false) ? 'matched-row-overdue' : '' }}">
+            <tr class="{{ ($item->is_overdue ?? false) ? 'matched-row-overdue' : '' }}" data-date-encoded="{{ $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '' }}">
               <td><strong>{{ $item->id }}</strong></td>
               <td>{{ $item->item_type ?? '—' }}</td>
               <td>{{ $item->found_at ?? '—' }}</td>
@@ -162,6 +169,38 @@
     </div>
   </div>
 
+  {{-- ── School-Year Archive Download ─────────────────────────────────────── --}}
+  <div class="inventory-card matched-reports-card" style="margin-top:16px;">
+    <div class="inventory-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span>Archive School Year Records</span>
+    </div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">
+      Download a CSV of all found items and lost reports created during a school year (June 1 – May 31).
+      This is useful for end-of-year archiving and record-keeping.
+    </p>
+    <form method="GET" action="{{ route('admin.export.archive') }}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      @php
+        $currentMonth = now()->month;
+        $currentYear  = now()->year;
+        $syStartYear  = $currentMonth >= 6 ? $currentYear : $currentYear - 1;
+        $options = [];
+        for ($y = $syStartYear; $y >= $syStartYear - 4; $y--) {
+            $label    = 'SY ' . $y . '–' . ($y + 1);
+            $value    = substr($y, 2) . substr($y + 1, 2);
+            $options[] = ['label' => $label, 'value' => $value];
+        }
+      @endphp
+      <select name="sy" class="found-filter-select browse-filter-select matched-filter-select" style="min-width:180px;">
+        @foreach($options as $opt)
+          <option value="{{ $opt['value'] }}">{{ $opt['label'] }}</option>
+        @endforeach
+      </select>
+      <button type="submit" class="found-btn" style="background:#15803d;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-download"></i> Download Archive CSV
+      </button>
+    </form>
+  </div>
+
   {{-- ── Item Detail Modal ───────────────────────────────────────────────────── --}}
   <div id="idmOverlay" class="idm-overlay" role="dialog" aria-modal="true" aria-labelledby="idmTitle">
     <div class="idm-modal">
@@ -187,30 +226,24 @@
         {{-- Right: general info --}}
         <div class="idm-right">
           <p class="idm-section-title">General Information</p>
-          <div class="idm-info-row"><span class="idm-info-label">Category</span><span class="idm-info-value" id="idmCategory">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Item</span><span class="idm-info-value" id="idmItem">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Color</span><span class="idm-info-value" id="idmColor">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Brand</span><span class="idm-info-value" id="idmBrand">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Item Description</span><span class="idm-info-value" id="idmDescription">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Storage Location</span><span class="idm-info-value" id="idmStorage">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Found At</span><span class="idm-info-value" id="idmFoundAt">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Found By</span><span class="idm-info-value" id="idmFoundBy">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Encoded By</span><span class="idm-info-value" id="idmEncodedBy">—</span></div>
-          <div class="idm-info-row"><span class="idm-info-label">Date Found</span><span class="idm-info-value" id="idmDateFound">—</span></div>
-        </div>
-      </div>
-
-      {{-- Potential Claimants --}}
-      <div class="idm-claimants">
-        <p class="idm-claimants-title">Potential Claimants</p>
-        <div id="idmClaimantsList" class="idm-claimants-grid">
-          <p class="idm-no-claimants">No potential claimants found.</p>
+          <div class="idm-info-card">
+            <div class="idm-info-row"><span class="idm-info-label">Category</span><span class="idm-info-value" id="idmCategory">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Item</span><span class="idm-info-value" id="idmItem">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Color</span><span class="idm-info-value" id="idmColor">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Brand</span><span class="idm-info-value" id="idmBrand">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Item Description</span><span class="idm-info-value" id="idmDescription">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Storage Location</span><span class="idm-info-value" id="idmStorage">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Found At</span><span class="idm-info-value" id="idmFoundAt">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Found By</span><span class="idm-info-value" id="idmFoundBy">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Encoded By</span><span class="idm-info-value" id="idmEncodedBy">—</span></div>
+            <div class="idm-info-row"><span class="idm-info-label">Date Found</span><span class="idm-info-value" id="idmDateFound">—</span></div>
+          </div>
         </div>
       </div>
 
       <div class="idm-footer">
         <button type="button" class="idm-btn-cancel" id="idmCancelBtn">Cancel</button>
-        <button type="button" class="idm-btn-confirm" id="idmConfirmBtn" disabled>Confirm</button>
+        <button type="button" class="idm-btn-dispose" id="idmDisposeBtn" style="display:none;">Dispose Item</button>
       </div>
     </div>
   </div>
@@ -233,10 +266,11 @@
   var overlay      = document.getElementById('idmOverlay');
   var closeBtn     = document.getElementById('idmCloseBtn');
   var cancelBtn    = document.getElementById('idmCancelBtn');
-  var confirmBtn   = document.getElementById('idmConfirmBtn');
+  var disposeBtn   = document.getElementById('idmDisposeBtn');
   var successOv    = document.getElementById('idmSuccessOverlay');
   var successClose = document.getElementById('idmSuccessClose');
   var currentItemId = null;
+  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   // ── Open modal ──────────────────────────────────────────────────────────
   document.querySelectorAll('.idm-view-btn').forEach(function (btn) {
@@ -245,9 +279,10 @@
       currentItemId = id;
 
       // Reset state
-      confirmBtn.disabled = true;
+      disposeBtn.style.display = 'none';
+      disposeBtn.disabled = false;
+      disposeBtn.textContent = 'Dispose Item';
       document.getElementById('idmBarcode').textContent = 'Loading…';
-      document.getElementById('idmClaimantsList').innerHTML = '<p class="idm-no-claimants">Loading…</p>';
       ['idmCategory','idmItem','idmColor','idmBrand','idmDescription','idmStorage','idmFoundAt','idmFoundBy','idmEncodedBy','idmDateFound'].forEach(function(k){ document.getElementById(k).textContent = '—'; });
       document.getElementById('idmPhoto').style.display = 'none';
       document.getElementById('idmPhotoPlaceholder').style.display = '';
@@ -261,7 +296,7 @@
       .then(function (data) {
         if (!data.ok) { alert(data.error || 'Failed to load item.'); closeModal(); return; }
 
-        document.getElementById('idmBarcode').textContent   = 'Barcode ID: ' + data.id;
+        document.getElementById('idmBarcode').textContent   = 'Reference ID: ' + data.id;
         document.getElementById('idmCategory').textContent  = data.item_type     || '—';
         document.getElementById('idmItem').textContent      = data.item_name     || '—';
         document.getElementById('idmColor').textContent     = data.color         || '—';
@@ -280,74 +315,56 @@
           document.getElementById('idmPhotoPlaceholder').style.display = 'none';
         }
 
-        // Build claimants list
-        var list = document.getElementById('idmClaimantsList');
-        if (!data.claimants || data.claimants.length === 0) {
-          list.innerHTML = '<p class="idm-no-claimants">No potential claimants found.</p>';
-          confirmBtn.disabled = true;
-        } else {
-          list.innerHTML = '';
-          data.claimants.forEach(function (c, i) {
-            var row = document.createElement('div');
-            row.className = 'idm-claimant-row';
-            var rid = 'idmClaimant_' + i;
-            row.innerHTML =
-              '<input type="radio" class="idm-claimant-radio" name="idm_claimant" id="' + rid + '" value="' + c.id + '">' +
-              '<label class="idm-claimant-label" for="' + rid + '">' + c.email + '</label>';
-            list.appendChild(row);
-          });
-          // Enable confirm when a claimant is selected
-          list.addEventListener('change', function () {
-            confirmBtn.disabled = false;
-          });
-        }
+        // Show dispose button only for expired items
+        disposeBtn.style.display = data.is_overdue ? '' : 'none';
       })
       .catch(function () { alert('Network error loading item details.'); closeModal(); });
     });
   });
 
-  // ── Confirm ─────────────────────────────────────────────────────────────
-  confirmBtn.addEventListener('click', function () {
-    var selected = document.querySelector('input[name="idm_claimant"]:checked');
-    if (!selected || !currentItemId) return;
+  // ── Dispose ─────────────────────────────────────────────────────────────
+  disposeBtn.addEventListener('click', function () {
+    if (!currentItemId) return;
+    if (!confirm('Are you sure you want to dispose of this item? This cannot be undone.')) return;
 
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = 'Processing…';
+    disposeBtn.disabled = true;
+    disposeBtn.textContent = 'Disposing…';
 
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    fetch('{{ url("admin/inventory/confirm") }}/' + encodeURIComponent(currentItemId), {
+    fetch('{{ url("admin/inventory/dispose") }}/' + encodeURIComponent(currentItemId), {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'X-CSRF-TOKEN': csrfToken,
         'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ lost_report_id: selected.value })
+      }
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      confirmBtn.textContent = 'Confirm';
+      disposeBtn.textContent = 'Dispose Item';
+      disposeBtn.disabled = false;
       if (data.ok) {
         closeModal();
+        document.querySelector('.idm-success-msg').textContent = 'Item has been disposed successfully.';
         successOv.classList.add('open');
-        // Remove the confirmed row from the table
         var row = document.querySelector('.idm-view-btn[data-id="' + currentItemId + '"]');
         if (row) row.closest('tr').remove();
       } else {
-        alert(data.error || 'Something went wrong.');
-        confirmBtn.disabled = false;
+        alert(data.error || 'Failed to dispose item.');
       }
     })
     .catch(function () {
-      confirmBtn.textContent = 'Confirm';
-      confirmBtn.disabled = false;
+      disposeBtn.textContent = 'Dispose Item';
+      disposeBtn.disabled = false;
       alert('Network error. Please try again.');
     });
   });
 
   // ── Close helpers ────────────────────────────────────────────────────────
-  function closeModal() { overlay.classList.remove('open'); confirmBtn.textContent = 'Confirm'; }
+  function closeModal() {
+    overlay.classList.remove('open');
+    confirmBtn.textContent = 'Confirm';
+    disposeBtn.textContent = 'Dispose Item';
+    disposeBtn.disabled = false;
+  }
 
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
@@ -356,6 +373,36 @@
 
   successClose.addEventListener('click', function () { successOv.classList.remove('open'); });
   successOv.addEventListener('click', function (e) { if (e.target === successOv) successOv.classList.remove('open'); });
+})();
+</script>
+<script>
+// ── Date filter (client-side) ─────────────────────────────────────────────
+(function(){
+  var sel = document.getElementById('invDateFilter');
+  if(!sel) return;
+  function applyDate(){
+    var val = sel.value;
+    var now = new Date();
+    var todayStr  = now.toISOString().slice(0,10);
+    var weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+    var weekStr   = weekStart.toISOString().slice(0,10);
+    var monthStr  = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+    var m3Str     = new Date(now.getFullYear(),now.getMonth()-3,now.getDate()).toISOString().slice(0,10);
+    var yearStr   = new Date(now.getFullYear(),0,1).toISOString().slice(0,10);
+    document.querySelectorAll('.matched-reports-table tbody tr[data-date-encoded]').forEach(function(r){
+      if(r.querySelector('td[colspan]')) return;
+      if(!val){ r.style.display=''; return; }
+      var d = r.getAttribute('data-date-encoded')||'';
+      var show = true;
+      if(val==='today')   show = d===todayStr;
+      if(val==='week')    show = d>=weekStr && d<=todayStr;
+      if(val==='month')   show = d>=monthStr && d<=todayStr;
+      if(val==='3months') show = d>=m3Str && d<=todayStr;
+      if(val==='year')    show = d>=yearStr && d<=todayStr;
+      r.style.display = show?'':'none';
+    });
+  }
+  sel.addEventListener('change', applyDate);
 })();
 </script>
 @endpush

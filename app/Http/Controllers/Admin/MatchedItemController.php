@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Manages the Matched Items / For-Claiming admin page.
@@ -18,18 +19,25 @@ class MatchedItemController extends Controller
     public function index()
     {
         // Internal: non-ID found items that have been auto-matched or have an acknowledged claim
+        $matchedLostReports = Schema::hasTable('item_matches')
+            ? DB::table('item_matches')->pluck('lost_report_id', 'found_item_id')->toArray()
+            : [];
+
         $foundItems = Item::foundItems()
             ->whereIn('status', ['For Verification', 'Unresolved Claimants'])
             ->where('item_type', '!=', 'ID & Nameplate')
             ->orderByDesc('date_encoded')
             ->get()
-            ->map(function ($item) {
+            ->map(function ($item) use ($matchedLostReports) {
                 $item = $this->attachRetention($item, 2);
                 // 'Unresolved Claimants' means the student already acknowledged — never gate
                 $item->admin_claim_gated = $item->status === 'Unresolved Claimants'
                     ? false
                     : ($item->requiresStudentClaimIntentBeforeAdminClaim()
                         && ! $item->hasStudentClaimIntentForAdminClaim());
+
+                // Attach linked lost report ID for the CCM modal student report card
+                $item->linked_lost_report_id = $matchedLostReports[$item->id] ?? null;
 
                 return $item;
             });
@@ -60,11 +68,10 @@ class MatchedItemController extends Controller
         ));
     }
 
-    private function attachRetention(Item $item, int $years): Item
+    private function attachRetention(Item $item, int $years = 2): Item
     {
-        $base = $item->date_encoded ?? $item->created_at;
-        if ($base) {
-            $end = Carbon::parse($base)->addYears($years);
+        $end = $item->retentionEndDate();
+        if ($end) {
             $item->retention_end      = $end->toDateString();
             $item->is_overdue         = $end->isPast();
             $item->expires_in_30_days = !$item->is_overdue && $end->diffInDays(now(), false) >= -30;

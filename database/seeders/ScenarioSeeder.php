@@ -70,12 +70,12 @@ class ScenarioSeeder extends Seeder
             ['UB30005', 'Electronics & Gadgets', 'Scientific Calculator','Gray',   'Casio',     'CAS Building Room 203',          '2501011@ub.edu.ph',            $d(90),  'Drawer 3',            'Claimed'],
             ['UB30006', 'Electronics & Gadgets', 'Power Bank',           'White',  'Anker',     'Student Cafeteria',              'cafeteria.staff@ub.edu.ph',    $d(7),   'Cabinet A, Shelf 1',  'Unclaimed Items'],
 
-            /* ── Document & Identification ──────────────────────── */
-            ['UB30007', 'Document & Identification', 'Notebook',         'Blue',   null,        'CITE Hall Lobby',                'cite.staff@ub.edu.ph',         $d(10),  'Cabinet C, Shelf 1',  'Unclaimed Items'],
-            ['UB30008', 'Document & Identification', 'Folder',           'Red',    null,        'CBA Building Corridor',          'cba.staff@ub.edu.ph',          $d(25),  'Drawer 4',            'For Verification'],
-            ['UB30009', 'Document & Identification', 'Library Book',     'Brown',  null,        'Library Building 1F',            'library.staff@ub.edu.ph',      $d(5),   'Cabinet C, Shelf 2',  'Unclaimed Items'],
-            ['UB30010', 'Document & Identification', 'Personal Planner', 'Black',  null,        'Administration Building Lobby',  'admin.staff@ub.edu.ph',        $d(150), 'Drawer 5',            'Claimed'],
-            ['UB30011', 'Document & Identification', 'Exam Papers',      'White',  null,        'Faculty Room 2F',                'faculty@ub.edu.ph',            $d(60),  null,                  'Cancelled'],
+            /* ── Books & School Supplies ────────────────────────── */
+            ['UB30007', 'Books & School Supplies', 'Notebook',         'Blue',   null,        'CITE Hall Lobby',                'cite.staff@ub.edu.ph',         $d(10),  'Cabinet C, Shelf 1',  'Unclaimed Items'],
+            ['UB30008', 'Books & School Supplies', 'Folder',           'Red',    null,        'CBA Building Corridor',          'cba.staff@ub.edu.ph',          $d(25),  'Drawer 4',            'For Verification'],
+            ['UB30009', 'Books & School Supplies', 'Library Book',     'Brown',  null,        'Library Building 1F',            'library.staff@ub.edu.ph',      $d(5),   'Cabinet C, Shelf 2',  'Unclaimed Items'],
+            ['UB30010', 'Books & School Supplies', 'Personal Planner', 'Black',  null,        'Administration Building Lobby',  'admin.staff@ub.edu.ph',        $d(150), 'Drawer 5',            'Claimed'],
+            ['UB30011', 'Books & School Supplies', 'Exam Papers',      'White',  null,        'Faculty Room 2F',                'faculty@ub.edu.ph',            $d(60),  null,                  'Cancelled'],
 
             /* ── Personal Belongings ────────────────────────────── */
             ['UB30012', 'Personal Belongings', 'Wallet',                 'Brown',  null,        'Main Canteen',                   'canteen.staff@ub.edu.ph',      $d(28),  'Drawer 1',            'For Verification'],
@@ -158,7 +158,7 @@ class ScenarioSeeder extends Seeder
         $reports = [
             // Active For Verification matches
             ['REF-0000030001', '2501001@ub.edu.ph', 'Electronics & Gadgets',    'Earphones',   'White',  'Apple',     $d(35),  'For Verification',      'UB30002', '09123456789', 'CICT', '2501001', 'Juan Dela Cruz'],
-            ['REF-0000030002', '2501002@ub.edu.ph', 'Document & Identification','Folder',      'Red',    null,        $d(30),  'For Verification',      'UB30008', '09234567890', 'CBA',  '2501002', 'Maria Santos'],
+            ['REF-0000030002', '2501002@ub.edu.ph', 'Books & School Supplies',  'Folder',      'Red',    null,        $d(30),  'For Verification',      'UB30008', '09234567890', 'CBA',  '2501002', 'Maria Santos'],
             ['REF-0000030003', '2501003@ub.edu.ph', 'Personal Belongings',      'Wallet',      'Brown',  null,        $d(32),  'For Verification',      'UB30012', '09345678901', 'CITE', '2501003', 'Carlo Reyes'],
             ['REF-0000030004', '2501004@ub.edu.ph', 'Apparel & Accessories',    'Jacket',      'Blue',   null,        $d(26),  'For Verification',      'UB30018', '09456789012', 'CAS',  '2501004', 'Ana Lim'],
             // Marco — 2 matched reports (Unresolved Claimants + For Verification)
@@ -170,7 +170,7 @@ class ScenarioSeeder extends Seeder
             // Resolved reports (fully claimed)
             ['REF-0000030009', '2501010@ub.edu.ph', 'Electronics & Gadgets',    'USB Flash Drive','Silver','Kingston', $d(130), 'Resolved',             'UB30004', '09876543210', 'CON',  '2501010', 'Angela Cruz'],
             ['REF-0000030010', '2501009@ub.edu.ph', 'Electronics & Gadgets',    'Calculator',  'Gray',   'Casio',     $d(100), 'Resolved',              'UB30005', '09765432109', 'CAS',  '2501009', 'Rafael Garcia'],
-            ['REF-0000030011', '2501006@ub.edu.ph', 'Document & Identification','Planner',     'Black',  null,        $d(160), 'Resolved',              'UB30010', '09678901234', 'CICT', '2501006', 'Jasmine Torres'],
+            ['REF-0000030011', '2501006@ub.edu.ph', 'Books & School Supplies',  'Planner',     'Black',  null,        $d(160), 'Resolved',              'UB30010', '09678901234', 'CICT', '2501006', 'Jasmine Torres'],
             ['REF-0000030012', '2501007@ub.edu.ph', 'Personal Belongings',      'Backpack',    'Black',  'JanSport',  $d(110), 'Resolved',              'UB30013', '09345678901', 'CBA',  '2501007', 'Diego Villanueva'],
             ['REF-0000030013', '2501008@ub.edu.ph', 'Apparel & Accessories',    'Cap',         'Red',    null,        $d(90),  'Resolved',              'UB30019', '09654321098', 'CITE', '2501008', 'Sofia Mendoza'],
             // Angela's second resolved report

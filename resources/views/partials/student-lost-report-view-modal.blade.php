@@ -50,7 +50,7 @@
       } else {
         leftCol += '<div class="item-details-image-wrap item-details-image-placeholder"><i class="fa-regular fa-image"></i><span>No photo</span></div>';
       }
-      leftCol += '<p class="item-details-barcode-id">'+esc(tid)+'</p></div>';
+      leftCol += '<p class="item-details-barcode-id">Ticket ID: '+esc(tid)+'</p></div>';
 
       function infoRow(label, val){
         val = (val==null || val==='') ? '—' : String(val);
@@ -101,7 +101,7 @@
         + '<h4 class="item-details-info-title">General Information</h4>'
         + '<hr class="item-details-divider" />'
         + '</div>'
-        + dl
+        + '<div class="idm-info-card">' + dl + '</div>'
         + '</div>';
 
       body.innerHTML = leftCol + rightCol;

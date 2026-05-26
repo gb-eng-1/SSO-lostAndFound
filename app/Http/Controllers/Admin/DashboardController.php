@@ -28,7 +28,7 @@ class DashboardController extends Controller
     {
         return Item::foundItems()->where(function ($q) {
             $q->whereNull('item_type')
-                ->orWhereNotIn('item_type', ['ID & Nameplate', 'Document & Identification']);
+                ->orWhereNotIn('item_type', ['ID & Nameplate', 'Unclaimed IDs']);
         });
     }
 
@@ -42,11 +42,11 @@ class DashboardController extends Controller
             ->count();
     }
 
-    /** Recovered IDs tab bucket (ID & Nameplate + Document & Identification encodes). */
+    /** Recovered IDs tab bucket (ID & Nameplate + Unclaimed IDs encodes). */
     private function countExternalIds(): int
     {
         return Item::foundItems()
-            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
+            ->whereIn('item_type', ['ID & Nameplate', 'Unclaimed IDs'])
             ->whereNotIn('status', ['Cancelled', 'Disposed'])
             ->count();
     }
@@ -67,19 +67,42 @@ class DashboardController extends Controller
             ->count();
     }
 
+    /** Lost reports submitted by students via the student portal. */
+    private function countStudentLostReports(): int
+    {
+        return DB::table('activity_log')
+            ->where('action', 'lost_report')
+            ->where('actor_type', 'student')
+            ->count();
+    }
+
+    /** Lost reports encoded by admins on behalf of walk-in students/guests. */
+    private function countAdminLostReports(): int
+    {
+        return DB::table('activity_log')
+            ->where('action', 'lost_report')
+            ->where('actor_type', 'admin')
+            ->count();
+    }
+
     /** GET /admin */
     public function index()
     {
-        $internalRecovered = $this->countInternalRecovered();
-        $externalIds       = $this->countExternalIds();
-        $unresolved        = $this->countUnresolved();
-        $forVerification   = $this->countForVerification();
+        $internalRecovered   = $this->countInternalRecovered();
+        $externalIds         = $this->countExternalIds();
+        $unresolved          = $this->countUnresolved();
+        $forVerification     = $this->countForVerification();
+        $studentLostReports  = $this->countStudentLostReports();
+        $adminLostReports    = $this->countAdminLostReports();
 
         $charts = $this->buildStatusDistributionCharts($internalRecovered, $externalIds, $unresolved, $forVerification);
         $pieData = $charts['pieData'];
         $pieCaption = $charts['pieCaption'];
         $barData = $charts['barData'];
         $barCaption = $charts['barCaption'];
+
+        $lostByCatData  = $this->buildLostByCategoryChart();
+        $foundByCatData = $this->buildFoundByCategoryChart();
 
         $recoveredInternal = $this->queryRecoveredInternalTable();
         $recoveredExternal = $this->queryRecoveredExternalTable();
@@ -94,10 +117,14 @@ class DashboardController extends Controller
             'externalIds',
             'unresolved',
             'forVerification',
+            'studentLostReports',
+            'adminLostReports',
             'pieData',
             'pieCaption',
             'barData',
             'barCaption',
+            'lostByCatData',
+            'foundByCatData',
             'recoveredInternal',
             'recoveredExternal',
             'unresolvedItems',
@@ -112,16 +139,21 @@ class DashboardController extends Controller
      */
     public function summary(): JsonResponse
     {
-        $internalRecovered = $this->countInternalRecovered();
-        $externalIds       = $this->countExternalIds();
-        $unresolved        = $this->countUnresolved();
-        $forVerification   = $this->countForVerification();
+        $internalRecovered  = $this->countInternalRecovered();
+        $externalIds        = $this->countExternalIds();
+        $unresolved         = $this->countUnresolved();
+        $forVerification    = $this->countForVerification();
+        $studentLostReports = $this->countStudentLostReports();
+        $adminLostReports   = $this->countAdminLostReports();
 
         $charts = $this->buildStatusDistributionCharts($internalRecovered, $externalIds, $unresolved, $forVerification);
         $pieData = $charts['pieData'];
         $pieCaption = $charts['pieCaption'];
         $barData = $charts['barData'];
         $barCaption = $charts['barCaption'];
+
+        $lostByCatData  = $this->buildLostByCategoryChart();
+        $foundByCatData = $this->buildFoundByCategoryChart();
 
         $tables = $this->serializeDashboardTablesForJson(
             $this->queryRecoveredInternalTable(),
@@ -133,20 +165,58 @@ class DashboardController extends Controller
 
         return response()->json([
             'ok' => true,
-            'internal_recovered' => $internalRecovered,
-            'external_ids'         => $externalIds,
-            'unresolved'           => $unresolved,
-            'for_verification'     => $forVerification,
-            'pie_data'             => $pieData,
-            'pie_caption'          => $pieCaption,
-            'bar_data'             => $barData,
-            'bar_caption'          => $barCaption,
-            'recovered_internal'   => $tables['recovered_internal'],
-            'recovered_external'   => $tables['recovered_external'],
-            'unresolved_items'     => $tables['unresolved_items'],
-            'verification_items'   => $tables['verification_items'],
-            'recent_activity'      => $recentActivityJson,
+            'internal_recovered'  => $internalRecovered,
+            'external_ids'        => $externalIds,
+            'unresolved'          => $unresolved,
+            'for_verification'    => $forVerification,
+            'student_reports'     => $studentLostReports,
+            'admin_reports'       => $adminLostReports,
+            'pie_data'            => $pieData,
+            'pie_caption'         => $pieCaption,
+            'bar_data'            => $barData,
+            'bar_caption'         => $barCaption,
+            'lost_by_cat_data'    => $lostByCatData,
+            'found_by_cat_data'   => $foundByCatData,
+            'recovered_internal'  => $tables['recovered_internal'],
+            'recovered_external'  => $tables['recovered_external'],
+            'unresolved_items'    => $tables['unresolved_items'],
+            'verification_items'  => $tables['verification_items'],
+            'recent_activity'     => $recentActivityJson,
         ]);
+    }
+
+    /** Lost reports grouped by item_type, ordered by count desc. */
+    private function buildLostByCategoryChart(): array
+    {
+        $rows = Item::lostReports()
+            ->whereNotIn('status', ['Cancelled', 'Disposed'])
+            ->selectRaw('item_type, count(*) as cnt')
+            ->groupBy('item_type')
+            ->orderByDesc('cnt')
+            ->get();
+
+        return $rows->map(fn ($r) => [
+            'label' => $r->item_type ?: 'Uncategorised',
+            'count' => (int) $r->cnt,
+            'color' => '#1976d2',
+        ])->values()->all();
+    }
+
+    /** Found items grouped by item_type, ordered by count desc. */
+    private function buildFoundByCategoryChart(): array
+    {
+        $rows = Item::foundItems()
+            ->whereNotIn('status', ['Cancelled', 'Disposed'])
+            ->selectRaw('item_type, count(*) as cnt')
+            ->groupBy('item_type')
+            ->orderByDesc('cnt')
+            ->get();
+
+        return $rows->map(fn ($r) => [
+            'label' => $r->item_type ?: 'Uncategorised',
+            'count' => (int) $r->cnt,
+            'color' => '#2e7d32',
+        ])->values()->all();
     }
 
     /**
@@ -224,7 +294,7 @@ class DashboardController extends Controller
     private function queryRecoveredExternalTable()
     {
         return Item::foundItems()
-            ->whereIn('item_type', ['ID & Nameplate', 'Document & Identification'])
+            ->whereIn('item_type', ['ID & Nameplate', 'Unclaimed IDs'])
             ->whereNotIn('status', ['Cancelled', 'Disposed'])
             ->orderByDesc('date_encoded')
             ->limit(7)
@@ -353,6 +423,7 @@ class DashboardController extends Controller
                     'found_at' => $item->found_at ?? '—',
                     'date_encoded' => $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—',
                     'retention_end' => $item->retention_end ?? 'N/A',
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—',
                 ];
             })->values()->all(),
             'recovered_external' => $recoveredExternal->map(function (Item $item) {
@@ -362,6 +433,7 @@ class DashboardController extends Controller
                     'storage_location' => $item->storage_location ?? '—',
                     'date_encoded' => $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—',
                     'retention_end' => $item->retention_end ?? 'N/A',
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—',
                 ];
             })->values()->all(),
             'unresolved_items' => $unresolvedItems->map(function (Item $item) {
@@ -382,6 +454,7 @@ class DashboardController extends Controller
                     'retention_end' => $item->retention_end ?? 'N/A',
                     'storage_location' => $item->storage_location ?? '—',
                     'date_encoded' => $item->date_encoded ? $item->date_encoded->format('Y-m-d') : '—',
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—',
                 ];
             })->values()->all(),
         ];
@@ -448,6 +521,9 @@ class DashboardController extends Controller
                 'item'            => $meta['Item'] ?? $meta['Item Type'] ?? null,
                 'clean_description' => trim(preg_replace('/\n+/', "\n", $desc)) ?: null,
             ];
+            $data['actor_type'] = \App\Models\ActivityLog::where('item_id', $item->id)
+                ->where('action', 'lost_report')
+                ->value('actor_type') ?? 'admin';
             $data['display_ticket_id'] = $item->display_ticket_id;
             $data['linked_summary'] = null;
             if (! empty($item->matched_barcode_id)) {
@@ -457,7 +533,7 @@ class DashboardController extends Controller
             $data['view_preset'] = $item->item_type === 'ID & Nameplate' ? 'found_external' : 'found_internal';
             $meta = $item->parseDescription();
             $desc = $item->item_description ?? '';
-            foreach (['Item', 'Encoded By'] as $key) {
+            foreach (['Item', 'Encoded By', 'Found By', 'Owner', 'ID Type', 'Student Number', 'Full Name', 'Contact', 'Department', 'Item Type'] as $key) {
                 $desc = preg_replace('/^' . preg_quote($key, '/') . ':\s*.+?(\n|$)/m', '', $desc);
             }
             $data['parsed'] = [

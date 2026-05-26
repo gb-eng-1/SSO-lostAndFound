@@ -171,6 +171,9 @@ class Item extends Model
     /**
      * Parse embedded metadata from item_description.
      * Embedded lines look like "Key: value\n".
+     * NOTE: Student PII fields (Full Name, Student Number, Department, Contact) are parsed here
+     * but intentionally not displayed in admin UI. Future integration point: these will be
+     * resolved via the school database instead of being embedded in item_description.
      */
     public function parseDescription(): array
     {
@@ -229,17 +232,21 @@ class Item extends Model
     }
 
     /**
-     * Found-item types listed under Recovered IDs (Guest tab): surrendered IDs and
-     * Document & Identification encodes from Encode Item.
+     * Found-item types listed under All IDs (Guest tab): surrendered IDs and
+     * Unclaimed IDs encodes from Encode Item.
      */
     public static function isFoundGuestTabCategory(?string $itemType): bool
     {
-        return $itemType === 'ID & Nameplate' || $itemType === 'Document & Identification';
+        return $itemType === 'ID & Nameplate' || $itemType === 'Unclaimed IDs';
     }
 
     /**
      * Compute the retention deadline for this found item.
-     * Guest-tab categories: 1 year; other internal categories: 2 years.
+     * - Guest-tab (ID/Document): 1 year
+     * - Apparel & Accessories: 6 months
+     * - Food-related items (keyword-based): 7 days
+     * - All others: 2 years (default)
+     * NOTE: food keywords and category rules are placeholders; future school DB integration may refine these.
      */
     public function retentionEndDate(): ?\Carbon\Carbon
     {
@@ -247,10 +254,23 @@ class Item extends Model
         if (! $base) {
             return null;
         }
+        $base = \Carbon\Carbon::parse($base);
 
-        $years = self::isFoundGuestTabCategory($this->item_type) ? 1 : 2;
+        if (self::isFoundGuestTabCategory($this->item_type)) {
+            return $base->addYear();
+        }
+        if ($this->item_type === 'Apparel & Accessories') {
+            return $base->addMonths(6);
+        }
+        $foodKeywords = ['food', 'lunch box', 'lunchbox', 'snack', 'meal', 'bento', 'packed lunch'];
+        $haystack = strtolower(($this->item_description ?? '') . ' ' . ($this->item_type ?? ''));
+        foreach ($foodKeywords as $kw) {
+            if (str_contains($haystack, $kw)) {
+                return $base->addWeek();
+            }
+        }
 
-        return \Carbon\Carbon::parse($base)->addYears($years);
+        return $base->addYears(2);
     }
 
     /**

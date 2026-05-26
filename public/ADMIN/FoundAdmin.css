@@ -1,3 +1,29 @@
+/* Universal rounded info card for item detail modals */
+.idm-info-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+/* Hide scrollbars universally in item detail modal bodies */
+.view-modal-body,
+.guest-modal-right,
+.guest-modal-body,
+.gdm-modal,
+.reports-modal-right,
+.report-modal-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.view-modal-body::-webkit-scrollbar,
+.guest-modal-right::-webkit-scrollbar,
+.guest-modal-body::-webkit-scrollbar,
+.gdm-modal::-webkit-scrollbar,
+.reports-modal-right::-webkit-scrollbar,
+.report-modal-body::-webkit-scrollbar { display: none; }
+
 /* Found Items page layout */
 .found-header-row {
   display: flex;
@@ -752,6 +778,7 @@
   grid-template-columns: minmax(140px, 38%) 1fr;
   gap: 12px 16px;
   align-items: center;
+  justify-content: flex-end;
   margin-bottom: 14px;
 }
 
@@ -809,6 +836,7 @@
 .report-form-row {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-end;
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -824,6 +852,7 @@
   color: #374151;
   padding-top: 10px;
   line-height: 1.4;
+  text-align: right;
 }
 
 .report-form-field {
@@ -872,7 +901,7 @@
 
 .report-input {
   flex: 1;
-  min-width: 0;
+  min-width: 120px;
   padding: 10px 12px;
   font-size: 14px;
   font-family: inherit;
@@ -1395,7 +1424,7 @@
 }
 .guest-modal-info-row:last-child { border-bottom: none; }
 .guest-modal-info-label { font-size: 13px; color: #6b7280; flex-shrink: 0; min-width: 120px; }
-.guest-modal-info-value { font-size: 13px; font-weight: 700; color: #111827; text-align: right; flex: 1; }
+.guest-modal-info-value { font-size: 13px; font-weight: 700; color: #111827; text-align: left; flex: 1; }
 @media (max-width: 520px) {
   .guest-modal-body { flex-direction: column; }
   .guest-modal-left { width: 100%; border-right: none; border-bottom: 1px solid #e5e7eb; border-radius: 0; }

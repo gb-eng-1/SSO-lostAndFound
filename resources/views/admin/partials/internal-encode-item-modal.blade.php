@@ -1,17 +1,3 @@
-{{-- Barcode already exists / linked reports (preflight) --}}
-<div class="cancel-confirm-overlay" id="barcodeDupModal" role="dialog" aria-modal="true" aria-hidden="true"
-     onclick="if(event.target===this)closeBarcodeDupModal()">
-  <div class="cancel-confirm-dialog" onclick="event.stopPropagation()">
-    <h3 class="cancel-confirm-hdr">Cannot use this Barcode ID</h3>
-    <div class="cancel-confirm-body">
-      <p style="margin:0;font-size:14px;line-height:1.5;" id="barcodeDupModalText"></p>
-    </div>
-    <div class="cancel-confirm-foot">
-      <button type="button" class="cancel-confirm-btn cancel-confirm-btn--secondary" id="barcodeDupModalOk">Go back</button>
-    </div>
-  </div>
-</div>
-
 {{-- Encode Internal Item (Item Recovered Report) — shared Dashboard + Found Items --}}
 <div class="report-modal-overlay" id="itemLostReportModal" role="dialog" aria-modal="true"
      onclick="if(event.target===this)closeEncodeModal()">
@@ -25,9 +11,16 @@
     <form id="encodeItemForm" class="report-modal-body">
       <div id="encodeModalErrorBanner" class="encode-modal-error" role="alert" style="display:none;margin:0 0 12px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;font-size:13px;"></div>
       <div class="report-form-row">
-        <label class="report-form-label" for="encBarcodeId">Barcode ID (eg: UB1005):</label>
-        <div class="report-form-field">
-          <input type="text" id="encBarcodeId" name="barcode_id" class="report-input" placeholder="Required — e.g. UB1005" required autocomplete="off">
+        <label class="report-form-label">Reference ID: <span class="report-required">*</span></label>
+        <div class="report-form-field" style="gap:6px;">
+          <select id="encIdPrefix" class="report-input report-select" style="flex:0 0 85px;min-width:85px;" required>
+            <option value="UBBC">UBBC</option>
+            <option value="UBLC">UBLC</option>
+          </select>
+          <span style="font-weight:700;color:#6b7280;align-self:center;">-</span>
+          <input type="text" id="encIdSy" class="report-input" style="flex:0 0 68px;min-width:68px;" placeholder="2526" maxlength="4" autocomplete="off">
+          <span style="font-weight:700;color:#6b7280;align-self:center;">-</span>
+          <input type="text" id="encIdSeq" class="report-input" style="flex:1;min-width:60px;" placeholder="0001" autocomplete="off">
         </div>
       </div>
       <div class="report-form-row">
@@ -35,7 +28,7 @@
         <div class="report-form-field">
           <select id="encCategory" name="category" class="report-input report-select">
             <option value="">— Select Category —</option>
-            @foreach(['Electronics & Gadgets','Document & Identification','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
+            @foreach(['Electronics & Gadgets','Books & School Supplies','Personal Belongings','Apparel & Accessories','Miscellaneous'] as $cat)
               <option value="{{ $cat }}">{{ $cat }}</option>
             @endforeach
           </select>
